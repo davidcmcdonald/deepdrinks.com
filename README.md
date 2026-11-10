@@ -1,6 +1,6 @@
 # Deep Drinks Podcast
 
-A local redesign of [the Deep Drinks website](https://www.deepdrinks.com/), built on the existing Next.js App Router project. The [design audit](DESIGN-AUDIT.md) records the reference sites and the decisions taken from each.
+Source for [the Deep Drinks Podcast website](https://www.deepdrinks.com/), published from [davidcmcdonald/deepdrinks.com](https://github.com/davidcmcdonald/deepdrinks.com). The [design audit](DESIGN-AUDIT.md) records the reference sites and the decisions taken from each.
 
 ## Run the local preview
 
@@ -8,10 +8,11 @@ From this checkout, run:
 
 ```powershell
 npm ci
-npm run dev -- --hostname 127.0.0.1 --port 3125
+npm run build
+npm run preview
 ```
 
-Open [the local preview](http://127.0.0.1:3125/). Use Node 22.12 or newer for the Cloudflare tooling. The production build is `npm run build`.
+Open [the local Worker preview](http://127.0.0.1:8787/). Use Node 22.12 or newer. For live editing on your own machine, `npm run dev -- --hostname 127.0.0.1 --port 3125` runs the Next development server at [localhost:3125](http://127.0.0.1:3125/).
 
 ## Pages
 
@@ -48,6 +49,6 @@ npm run preview
 
 The Worker preview defaults to [localhost on port 8787](http://127.0.0.1:8787/). Open [the local feed](http://127.0.0.1:8787/api/videos) to inspect the public IDs and the per-section `saved` fallback flags.
 
-For Workers Builds, use `npm run build` as the build command and `npm run deploy` as the deploy command from the repository root. For a manual deploy, use `npx wrangler whoami` to verify David’s personal account, build, then run `npm run deploy`. Set `YOUTUBE_API_KEY` in that Worker’s settings or with `npx wrangler secret put YOUTUBE_API_KEY`. The workers.dev preview stays on its own hostname.
+Pushes to `main` trigger Workers Builds in **David McDonald’s personal Cloudflare account**. The build command is `npm run build`; the deploy command is `npx wrangler deploy`. The public Google Analytics measurement ID is set as the build variable `NEXT_PUBLIC_GA_ID`. Set the optional `YOUTUBE_API_KEY` as a Worker secret. For a manual deployment, verify the personal account with `npx wrangler whoami` before deploying. The [workers.dev preview](https://deepdrinks-com.contactdavidmcdonald.workers.dev/) stays on its own hostname; its pages send `X-Robots-Tag: noindex`.
 
-Attach the intended hostnames in Cloudflare when DNS is active. To preserve the canonical hostname, add a zone Single Redirect matching `http.host eq "deepdrinks.com"`, set the dynamic target to `concat("https://www.deepdrinks.com", http.request.uri.path)`, choose HTTP 308, and enable **Preserve query string**. The zone rule covers static assets as well as Worker routes. [Cloudflare Single Redirects](https://developers.cloudflare.com/rules/url-forwarding/single-redirects/)
+Both `deepdrinks.com` and `www.deepdrinks.com` are Worker custom domains. A zone Single Redirect matches `http.host eq "deepdrinks.com"` and sends a permanent HTTP 308 to `concat("https://www.deepdrinks.com", http.request.uri.path)` with **Preserve query string** enabled. Squarespace remains the registrar; the authoritative nameservers are `chip.ns.cloudflare.com` and `sureena.ns.cloudflare.com`. Cloudflare signs the zone, and the matching DS record is stored at Squarespace. Google Workspace mail and its verification records remain in Cloudflare DNS. [Cloudflare Single Redirects](https://developers.cloudflare.com/rules/url-forwarding/single-redirects/)

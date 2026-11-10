@@ -1,0 +1,7 @@
+# Keep the public review URL and version previews out of search results.
+https://:version.contactdavidmcdonald.workers.dev/*
+  X-Robots-Tag: noindex
+
+# Next gives production assets in this directory a content hash or build ID.
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
