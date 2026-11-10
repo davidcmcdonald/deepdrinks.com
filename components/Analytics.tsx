@@ -2,7 +2,7 @@
 
 import Script from "next/script";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 declare global {
   interface Window {
@@ -16,10 +16,19 @@ export default function Analytics() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const debug = process.env.NODE_ENV !== "production";
+  const lastPage = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!id || typeof window === "undefined" || !window.gtag) return;
+    if (!id) return;
+    if (!window.gtag) {
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () { window.dataLayer.push(arguments); };
+      window.gtag("js", new Date());
+      window.gtag("config", id, { send_page_view: false });
+    }
     const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "");
+    if (lastPage.current === url) return;
+    lastPage.current = url;
     window.gtag("event", "page_view", {
       page_path: url,
       page_location: window.location.href,
@@ -31,20 +40,5 @@ export default function Analytics() {
 
   if (!id) return null;
 
-  return (
-    <>
-      <Script src={`https://www.googletagmanager.com/gtag/js?id=${id}`} strategy="afterInteractive" />
-      <Script id="ga-init" strategy="afterInteractive">
-        {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', '${id}', {
-            anonymize_ip: true,
-            send_page_view: false
-          });
-        `}
-      </Script>
-    </>
-  );
+  return <Script src={`https://www.googletagmanager.com/gtag/js?id=${id}`} strategy="afterInteractive" />;
 }

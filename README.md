@@ -11,7 +11,7 @@ npm ci
 npm run dev -- --hostname 127.0.0.1 --port 3125
 ```
 
-Open [the local preview](http://127.0.0.1:3125/). The production build is `npm run build`.
+Open [the local preview](http://127.0.0.1:3125/). Use Node 22.12 or newer for the Cloudflare tooling. The production build is `npm run build`.
 
 ## Pages
 
@@ -19,9 +19,11 @@ The homepage contains the latest episodes, landscape clips and the About section
 
 ## YouTube
 
-The server checks the [full episode playlist](https://www.youtube.com/playlist?list=PLLZG9iqwGS3M0_VyN7aGNEpsk9kWI7Zhg), the main channel’s [videos](https://www.youtube.com/@DeepDrinks/videos) and [streams](https://www.youtube.com/@DeepDrinks/streams), and the [clips channel’s Videos tab](https://www.youtube.com/@DeepDrinksClips/videos). Numbered show uploads can appear before they are added to the playlist. Public video IDs are deduplicated and sorted by publication time. Upcoming streams, Shorts and members-only items are filtered. An active public broadcast takes priority.
+The homepage combines the [full episode playlist](https://www.youtube.com/playlist?list=PLLZG9iqwGS3M0_VyN7aGNEpsk9kWI7Zhg) with numbered releases on the main channel’s [Videos](https://www.youtube.com/@DeepDrinks/videos) and [Live](https://www.youtube.com/@DeepDrinks/streams) tabs. Clips come from the dedicated [Videos tab](https://www.youtube.com/@DeepDrinksClips/videos). The feed deduplicates video IDs, prioritizes a current public broadcast, and excludes upcoming streams, private videos, Shorts and listed members-only previews.
 
-Each listing is cached on the server for five minutes and refreshed on demand. An open, visible homepage requests fresh data every five minutes and on return after that interval. Episodes use public channel and watch pages with an Atom fallback. Clips use the Videos tab and fall back to verified saved clips if YouTube does not expose the tab. Channel-wide feeds can mix in Shorts. The checked-in snapshot in `data/youtube.json` and the recent local thumbnails provide an initial fallback during an upstream outage. Snapshot dates were checked against public watch pages on 10 November 2026. Dates display in Brisbane time.
+The static HTML contains a verified set of episodes and clips. The homepage fetches `/api/videos` on arrival and every five minutes while visible. Returning to a visible tab also triggers a check once that interval has elapsed. The Cloudflare Worker caches responses at the edge and shares one refresh across locations using a SQLite-backed Durable Object. Each source retains its last successful list through an upstream outage. A first visit during a complete outage uses the bundled `data/youtube.json` snapshot. Cached broadcasts lose their live badge when their source cannot be checked.
+
+The keyless reader uses YouTube’s public tabs and playlist pages. If a public watch page is bot-gated, a verified public tab can still announce a new video with YouTube’s relative publication label. Exact publication dates display in Brisbane time when available. The official YouTube Data API is an independent source for hosts that consistently receive blocked public pages. Enable YouTube Data API v3 in a Google project and store its API-restricted key as the Worker secret `YOUTUBE_API_KEY`. For local Next development use `.env.local`. Wrangler reads `.dev.vars` for local Worker development. [YouTube Data API credentials](https://developers.google.com/youtube/v3/getting-started) · [Worker secrets](https://developers.cloudflare.com/workers/configuration/secrets/)
 
 ## Contact and affiliate pages
 
@@ -31,6 +33,21 @@ The reading and equipment pages use the two public Amazon lists linked from [Dav
 
 To update the saved list order, products, links and artwork, run `python scripts/refresh_catalog.py` from this checkout with Python 3.9+, `requests` and `beautifulsoup4`. The script refreshes `data/amazon.json` after both lists finish and preserves edited titles and bylines for existing items.
 
-## Hosting
+## Cloudflare hosting
 
-This checkout is for local design review. When the design is approved, the intended migration destination is David McDonald’s personal Cloudflare account. The preview uses no hosting credentials.
+The site runs as the `deepdrinks-com` Worker in David McDonald’s personal Cloudflare account. Next.js 14 exports the pages and artwork to `out/`. The Worker handles the video feed and the former `/about` URL. Wrangler creates the `VideoFeed` SQLite Durable Object binding on first deployment. Records are written only to this site’s Cloudflare storage. [Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/) · [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/get-started/)
+
+From this checkout, build and check the deployment locally.
+
+```powershell
+npm ci
+npm run build
+npm run cf:check
+npm run preview
+```
+
+The Worker preview defaults to [localhost on port 8787](http://127.0.0.1:8787/). Open [the local feed](http://127.0.0.1:8787/api/videos) to inspect the public IDs and the per-section `saved` fallback flags.
+
+For Workers Builds, use `npm run build` as the build command and `npm run deploy` as the deploy command from the repository root. For a manual deploy, use `npx wrangler whoami` to verify David’s personal account, build, then run `npm run deploy`. Set `YOUTUBE_API_KEY` in that Worker’s settings or with `npx wrangler secret put YOUTUBE_API_KEY`. The workers.dev preview stays on its own hostname.
+
+Attach the intended hostnames in Cloudflare when DNS is active. To preserve the canonical hostname, add a zone Single Redirect matching `http.host eq "deepdrinks.com"`, set the dynamic target to `concat("https://www.deepdrinks.com", http.request.uri.path)`, choose HTTP 308, and enable **Preserve query string**. The zone rule covers static assets as well as Worker routes. [Cloudflare Single Redirects](https://developers.cloudflare.com/rules/url-forwarding/single-redirects/)

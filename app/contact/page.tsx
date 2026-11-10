@@ -1,12 +1,15 @@
-import type { Metadata } from "next";
+import { absoluteUrl, pageMetadata, pageSchema } from "@/lib/metadata";
 import { SITE } from "@/site.config";
 import Glyph from "@/components/Glyph";
 import ContactForm from "@/components/ContactForm";
+import JsonLd from "@/components/JsonLd";
 
-export const metadata: Metadata = { title: "Contact", description: "Contact David McDonald about Deep Drinks guest pitches, collaborations or general enquiries.", alternates: { canonical: "/contact" } };
+export const metadata = pageMetadata("/contact");
 
 export default function Contact() {
   return <section className="shell inner-page contact-page">
+    <JsonLd json={{ ...pageSchema("/contact", "ContactPage"),
+      mainEntity: { "@type": "Person", "@id": absoluteUrl("/about/david#person"), name: "David McDonald", email: SITE.email } }} />
     <div className="contact-intro">
       <a className="back-link" href="/">Deep Drinks <span>/</span></a>
       <h1>Contact<span className="heading-period">.</span></h1>

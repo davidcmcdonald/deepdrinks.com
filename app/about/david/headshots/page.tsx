@@ -1,13 +1,9 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/metadata";
 import Link from "next/link";
 import HeadshotGallery from "@/components/HeadshotGallery";
 import "../profile.css";
 
-export const metadata: Metadata = {
-  title: "David McDonald headshots",
-  description: "View and download original photographs of David McDonald, host of the Deep Drinks podcast.",
-  alternates: { canonical: "/about/david/headshots" },
-};
+export const metadata = pageMetadata("/about/david/headshots");
 
 export default function Headshots() {
   return <section className="shell inner-page headshots-page">

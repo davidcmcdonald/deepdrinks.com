@@ -3,6 +3,9 @@ export type Video = {
   title: string;
   description?: string;
   published: string;
+  // YouTube's public tab can still supply a relative label when its watch page is unavailable.
+  publishedLabel?: string;
+  sortTime?: number;
   duration: string;
   episodeNumber: number | null;
   guest: string | null;

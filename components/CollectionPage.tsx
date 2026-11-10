@@ -1,10 +1,19 @@
 import Link from "next/link";
 import type { Collection } from "@/data/resources";
+import { pageSchema } from "@/lib/metadata";
 import CatalogShelf from "./CatalogShelf";
 import Glyph from "./Glyph";
+import JsonLd from "./JsonLd";
 
 export default function CollectionPage({ collection, books }: { collection: Collection; books?: boolean }) {
+  const path = books ? "/recommended-reading" : "/equipment";
   return <div className="shell inner-page collection-page">
+    <JsonLd json={{ ...pageSchema(path, "CollectionPage"), mainEntity: {
+      "@type": "ItemList", name: collection.title, numberOfItems: collection.items.length,
+      itemListElement: collection.items.map((item, i) => ({
+        "@type": "ListItem", position: i + 1, name: item.name, url: item.url,
+      })),
+    } }} />
     <a className="back-link" href="/">Deep Drinks <span>/</span></a>
     <header className="collection-intro">
       <div>

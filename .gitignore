@@ -8,6 +8,9 @@ node_modules/
 .next-dev/
 out/
 .vercel/
+.wrangler/
+.dev.vars
+.dev.vars.*
 .next/cache/
 
 # Logs

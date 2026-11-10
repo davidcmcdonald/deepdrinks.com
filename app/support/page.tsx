@@ -1,14 +1,11 @@
-import type { Metadata } from "next";
+import { pageMetadata, pageSchema } from "@/lib/metadata";
+import JsonLd from "@/components/JsonLd";
 import { SITE } from "@/site.config";
 import Glyph from "@/components/Glyph";
 import { PatreonIcon, YouTubeIcon, PayPalIcon, CoffeeIcon } from "@/components/Icons";
 import TrackLink from "@/components/TrackLink";
 
-export const metadata: Metadata = {
-  title: "Support",
-  description: "Support Deep Drinks with a membership on Patreon or YouTube, or a contribution through PayPal or Buy Me a Coffee.",
-  alternates: { canonical: "/support" },
-};
+export const metadata = pageMetadata("/support");
 
 const options = [
   { title: "Patreon", text: "Explore David’s supporter tiers and choose a membership that works for you.", href: SITE.socials.patreon, action: "Support on Patreon", event: "patreon", icon: PatreonIcon },
@@ -19,6 +16,7 @@ const options = [
 
 export default function Support() {
   return <section className="shell inner-page support-page">
+    <JsonLd json={pageSchema("/support")} />
     <a className="back-link" href="/">Deep Drinks <span>/</span></a>
     <div className="page-heading"><h1>Support Deep Drinks<span className="heading-period">.</span></h1>
       <p className="page-lead">Help David keep the conversations going with a membership or a one-off contribution.</p>

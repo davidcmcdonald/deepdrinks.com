@@ -1,22 +1,24 @@
-import type { Metadata } from "next";
+import { absoluteUrl, pageMetadata, pageSchema, profilePhoto } from "@/lib/metadata";
 import Link from "next/link";
 import Glyph from "@/components/Glyph";
 import InterviewPlayer from "@/components/InterviewPlayer";
+import JsonLd from "@/components/JsonLd";
 import "./profile.css";
 
-export const metadata: Metadata = {
-  title: "About David",
-  description: "Meet David McDonald, former Pentecostal youth pastor and host of Deep Drinks Podcast. Read his story and watch his interviews with Jubilee Dawn and Harmonic Atheist.",
-  alternates: { canonical: "/about/david" },
-};
+export const metadata = pageMetadata("/about/david");
 
 const interviews = [
-  { id: "U7H8xYa8iWM", anchor: "healed-ish", show: "Healed-ish with Jubilee Dawn", title: "A Bill Nye Debate Sparked My Deconstruction", detail: "David’s Story, Part 1 · Episode 69" },
-  { id: "JQcMJKOzm8o", anchor: "harmonic-atheist", show: "Harmonic Atheist", title: "Deep Drinks, Deep Questions, and my Deconversion Story", detail: "An interview with David McDonald" },
+  { id: "U7H8xYa8iWM", anchor: "healed-ish", show: "Healed-ish with Jubilee Dawn", title: "A Bill Nye Debate Sparked My Deconstruction", detail: "David’s Story, Part 1 · Episode 69", posterAlt: "David McDonald beside the Healed-ish title “David’s Story, Part 1”." },
+  { id: "JQcMJKOzm8o", anchor: "harmonic-atheist", show: "Harmonic Atheist", title: "Deep Drinks, Deep Questions, and my Deconversion Story", detail: "An interview with David McDonald", posterAlt: "David McDonald beside the words “It just doesn’t make sense anymore”." },
 ];
 
 export default function AboutDavid() {
   return <div className="shell inner-page david-page">
+    <JsonLd json={{ ...pageSchema("/about/david", "ProfilePage"), mainEntity: {
+      "@type": "Person", "@id": absoluteUrl("/about/david#person"), name: "David McDonald",
+      url: absoluteUrl("/about/david"), image: profilePhoto.url, jobTitle: "Podcast host",
+      description: "Former Pentecostal youth pastor and host of Deep Drinks Podcast.",
+    } }} />
     <nav className="breadcrumbs" aria-label="Breadcrumb"><Link href="/">Deep Drinks</Link><span>/</span><Link href="/#about">About the show</Link></nav>
     <article className="david-story">
       <header className="david-title">
@@ -43,7 +45,7 @@ export default function AboutDavid() {
       <div className="section-heading"><h2 id="interviews-title">David in conversation<span className="heading-period">.</span></h2></div>
       <div className="interview-grid">
         {interviews.map(interview => <article key={interview.id} id={interview.anchor} className="interview-card">
-          <InterviewPlayer id={interview.id} title={interview.title} />
+          <InterviewPlayer id={interview.id} title={interview.title} posterAlt={interview.posterAlt} />
           <p className="video-meta">{interview.show}</p>
           <h3>{interview.title}</h3><p className="interview-detail">{interview.detail}</p>
           <a className="text-action" href={"https://www.youtube.com/watch?v=" + interview.id} target="_blank" rel="noreferrer">Watch on YouTube <Glyph name="out" /></a>

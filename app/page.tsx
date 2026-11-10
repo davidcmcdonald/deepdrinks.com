@@ -1,63 +1,36 @@
-import type { Metadata } from "next";
+import { absoluteUrl, pageMetadata, studioPhoto } from "@/lib/metadata";
 import Image from "next/image";
 import Link from "next/link";
 import { SITE } from "@/site.config";
-import { getVideoLibrary } from "@/lib/youtube";
-import { videoUrl } from "@/lib/videos";
-import VideoCard from "@/components/VideoCard";
-import Clips from "@/components/Clips";
-import FeedRefresh from "@/components/FeedRefresh";
+import { savedLibrary } from "@/lib/video-snapshot";
+import FeedRefresh, { HomeVideos, LatestVideoLink } from "@/components/FeedRefresh";
 import Glyph from "@/components/Glyph";
-import TrackLink from "@/components/TrackLink";
 import JsonLd from "@/components/JsonLd";
 
-export const metadata: Metadata = { alternates: { canonical: "/" } };
-// The source lists cache independently. A fresh page can pick up newly published videos without a rebuild.
-export const dynamic = "force-dynamic";
-
-export default async function Home() {
-  const { episodes, clips, saved } = await getVideoLibrary();
-  const latest = episodes[0];
+export const metadata = pageMetadata("/");
+export default function Home() {
   return (
-    <>
-      <FeedRefresh />
-      <JsonLd json={{ "@context": "https://schema.org", "@type": "CollectionPage", url: SITE.url, name: "Recent Deep Drinks episodes",
-        hasPart: episodes.map(video => ({ "@type": "VideoObject", name: video.title, description: video.description || video.title, thumbnailUrl: new URL(video.thumbnail, SITE.url).href,
-          uploadDate: video.published, url: videoUrl(video), embedUrl: "https://www.youtube.com/embed/" + video.id })) }} />
+    <FeedRefresh initial={savedLibrary()}>
       <section className="hero" aria-labelledby="hero-title">
         <div className="hero-image">
           <img src="/images/david-studio-1600.webp" srcSet="/images/david-studio-800.webp 800w, /images/david-studio-1600.webp 1600w"
-            sizes="(max-width: 740px) 100vw, 66vw" fetchPriority="high" alt="David McDonald at the microphone in the Deep Drinks studio" width="1600" height="1095" />
+            sizes="(max-width: 740px) 100vw, 66vw" fetchPriority="high" alt="David McDonald at his studio microphone, with bookshelves behind him and whisky bottles on the table." width="1600" height="1095" />
         </div>
         <div className="shell hero-shell"><div className="hero-copy">
           <p className="host-line"><span className="signal" aria-hidden="true"><i/><i/><i/><i/><i/></span> With David McDonald</p>
           <h1 id="hero-title">Deep conversations<br/><em>over deep drinks.</em></h1>
           <p className="hero-description">Religion, philosophy, science and human rights, explored one conversation at a time.</p>
           <div className="hero-actions">
-            <TrackLink className="button primary" href={latest ? videoUrl(latest) : SITE.playlist} target="_blank" rel="noreferrer"
-              event="video_click" params={{ video_id: latest?.id, list: "hero" }}>
-              <Glyph name="play" /> {latest?.liveNow ? "Watch live" : latest ? "Watch latest episode" : "Watch episodes"}
-            </TrackLink>
+            <LatestVideoLink />
             <a href="#clips" className="hero-secondary">Explore clips <Glyph name="down" /></a>
           </div>
         </div></div>
       </section>
 
-      <section id="episodes" className="section episodes-section shell" aria-labelledby="episodes-heading">
-        <div className="section-heading">
-          <div><h2 id="episodes-heading">Recent episodes<span className="heading-period">.</span></h2>
-            <p>Full-length interviews with David and his guests.</p></div>
-          <a href={SITE.playlist} className="text-action" target="_blank" rel="noreferrer">All episodes <Glyph name="out" /></a>
-        </div>
-        {saved.episodes && <p className="feed-note">Showing the last saved YouTube listings.</p>}
-        <div className="video-grid">{episodes.map(video => <VideoCard key={video.id} video={video} kind="episodes" />)}</div>
-        {!episodes.length && <p className="feed-note">There are no public episodes in this feed yet.</p>}
-      </section>
-
-      <Clips clips={clips} saved={saved.clips} />
+      <HomeVideos />
 
       <section id="about" className="section about-section shell" aria-labelledby="about-heading">
-        <div className="about-image"><Image src="/images/David-Mcdonald-of-Deep-Drinks-Podcast_Profile.jpg" alt="David McDonald" width={520} height={520} sizes="(max-width: 740px) 85vw, 32vw" /></div>
+        <div className="about-image"><Image src="/images/David-Mcdonald-of-Deep-Drinks-Podcast_Profile.jpg" alt="David McDonald in a brown jacket beneath the studio’s illuminated Deep Drinks sign." width={520} height={520} sizes="(max-width: 740px) 85vw, 32vw" /></div>
         <div className="about-copy">
           <p className="section-kicker">About the show</p>
           <h2 id="about-heading">Across the table<br/> with David.</h2>
@@ -73,6 +46,21 @@ export default async function Home() {
           </div>
         </div>
       </section>
-    </>
+      <JsonLd json={{
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite", "@id": absoluteUrl("/#website"), name: SITE.title,
+            alternateName: "Deep Drinks", url: absoluteUrl("/"), inLanguage: "en-AU",
+          },
+          {
+            "@type": "PodcastSeries", "@id": absoluteUrl("/#podcast"), name: SITE.title,
+            url: absoluteUrl("/"), description: SITE.description, image: studioPhoto.url, inLanguage: "en-AU",
+            author: { "@type": "Person", "@id": absoluteUrl("/about/david#person"), name: "David McDonald", url: absoluteUrl("/about/david") },
+            sameAs: [SITE.socials.apple, SITE.socials.spotify, SITE.socials.youtube],
+          },
+        ],
+      }} />
+    </FeedRefresh>
   );
 }

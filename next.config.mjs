@@ -1,7 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: process.env.NODE_ENV === 'production' ? 'export' : undefined,
   distDir: process.env.NODE_ENV === 'development' ? '.next-dev' : '.next',
   images: {
+    unoptimized: true,
     remotePatterns: [
       { protocol: 'https', hostname: 'i.ytimg.com' },
       { protocol: 'https', hostname: 'yt3.googleusercontent.com' }

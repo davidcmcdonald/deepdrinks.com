@@ -8,7 +8,8 @@ export default function CatalogShelf({ items, books = false }: { items: Pick[]; 
   const [query, setQuery] = useState("");
   const term = query.trim().toLocaleLowerCase();
   const results = term ? items.filter(item => (item.name + " " + item.detail).toLocaleLowerCase().includes(term)) : items;
-  return <section className="collection-items" aria-label={books ? "Reading list" : "Equipment list"}>
+  return <section className="collection-items" aria-labelledby="catalog-title">
+    <h2 id="catalog-title" className="sr-only">{books ? "Books on David’s reading list" : "Equipment in David’s studio"}</h2>
     <div className="collection-label">
       <p className="catalog-count" role="status">{term ? results.length + " of " : ""}{items.length} {books ? "books" : "items"}</p>
       {books && <label className="catalog-search">
@@ -18,7 +19,7 @@ export default function CatalogShelf({ items, books = false }: { items: Pick[]; 
     <ul className="pick-list">{results.map(item => <li key={item.asin}>
       <a href={item.url} target="_blank" rel="sponsored noopener" aria-label={item.name + " on Amazon"} title={item.name}>
         <div className="pick-art">
-          <img src={item.image} alt="" width={320} height={320} loading="lazy" decoding="async"
+          <img src={item.image} alt={books ? "Cover of " + item.name : item.name} width={320} height={320} loading="lazy" decoding="async"
             onError={e => e.currentTarget.setAttribute("data-unavailable", "true")} />
           <span className="art-fallback">See {books ? "cover" : "photo"} on Amazon <Glyph name="out" /></span>
         </div>

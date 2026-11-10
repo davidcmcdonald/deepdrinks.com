@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { absoluteUrl, pageSchema } from "@/lib/metadata";
 import Glyph from "./Glyph";
+import JsonLd from "./JsonLd";
 
 const headshots = [
   { slug: "studio-microphone", name: "At the microphone", alt: "David McDonald in an olive overshirt, looking across the studio microphone.", width: 1080, height: 1080 },
@@ -13,6 +15,16 @@ const headshots = [
 function original(slug: string) {
   return slug === "neon-studio" ? "/images/David-Mcdonald-of-Deep-Drinks-Podcast_Profile.jpg" : "/images/headshots/" + slug + ".jpg";
 }
+
+const gallerySchema = {
+  ...pageSchema("/about/david/headshots", "ImageGallery"),
+  about: { "@id": absoluteUrl("/about/david#person") },
+  image: headshots.map(photo => ({
+    "@type": "ImageObject", name: photo.name, caption: photo.alt,
+    contentUrl: absoluteUrl(original(photo.slug)), thumbnailUrl: absoluteUrl("/images/headshots/" + photo.slug + ".webp"),
+    width: photo.width, height: photo.height, encodingFormat: "image/jpeg",
+  })),
+};
 
 export default function HeadshotGallery() {
   const [index, setIndex] = useState<number | null>(null);
@@ -28,6 +40,7 @@ export default function HeadshotGallery() {
   }
 
   return <>
+    <JsonLd json={gallerySchema} />
     <div className="headshot-grid">
       {headshots.map((photo, position) => <figure key={photo.slug}>
         <a className="headshot-thumb" href={original(photo.slug)} aria-label={"View " + photo.name} onClick={event => {

@@ -1,21 +1,9 @@
-import { unstable_cache } from "next/cache";
-import snapshot from "@/data/youtube.json";
-import { SITE } from "@/site.config";
 import { fetchAtom } from "./playlist";
 import { episodeNumber, type Video, type VideoLibrary } from "./videos";
+import { guests, latest, snapshotVideos } from "./video-snapshot";
+import { channels, confirmedLandscape, durationLabel, readOfficial, tabs, type Groups, type Source } from "./youtube-api";
 
-// YouTube currently returns HTML for its public tabs even when the Atom feeds return 404.
-const sources = {
-  playlist: SITE.playlist,
-  uploads: SITE.youtubeChannel + "/videos",
-  streams: SITE.youtubeChannel + "/streams",
-  clips: SITE.clips,
-};
-type Source = keyof typeof sources;
-const channelIds = { main: "UCB9JcmYVd-oHcZyCNraCiug", clips: "UCGxCnL5ls8n4QvAJkrrDDXQ" };
-const known = new Map<string, Video>(Object.values(snapshot).flat().map(video => [video.id, video]));
-const guestByEpisode = new Map(snapshot.episodes.flatMap(v => v.guest && v.episodeNumber ? [[v.episodeNumber, v.guest] as const] : []));
-type Listing = { id: string; title: string; live: boolean };
+type Listing = { id: string; title: string; live: boolean; duration?: string; publishedLabel?: string; sortTime?: number; mixedFormats?: boolean };
 // The watch and browse pages embed different renderer trees. All data crossing out of this module is checked below.
 type YtObject = Record<string, any>;
 
@@ -27,7 +15,7 @@ async function readPage(url: string, variable: "ytInitialData" | "ytInitialPlaye
   });
   if (!res.ok) throw new Error("YouTube returned " + res.status);
   const html = await res.text();
-  const match = html.match(new RegExp("\\b" + variable + "\\s*=\\s*(\\{[\\s\\S]*?\\});\\s*</script>"));
+  const match = html.match(new RegExp("\\b" + variable + "\\s*=\\s*(\\{[\\s\\S]*?\\});\\s*(?:</script>|var\\s)"));
   if (!match) throw new Error("YouTube omitted " + variable);
   return JSON.parse(match[1]);
 }
@@ -59,28 +47,40 @@ function listings(data: YtObject, source: Source): Listing[] {
     if (item.isPlayable === false || item.upcomingEventData || /UPCOMING|MEMBERS_ONLY|SHORTS|"text":"Upcoming"|Members only/i.test(badges)) return;
     if ((source === "uploads" || source === "streams") && !episodeNumber(title)) return;
     if (/^\[(Private|Deleted) video\]$/i.test(title)) return;
-    rows.set(id, { id, title, live: /BADGE_STYLE_LIVE|STYLE_TYPE_LIVE_NOW|"text":"LIVE"/i.test(badges) });
+    const meta = item.metadata?.lockupMetadataViewModel?.metadata?.contentMetadataViewModel;
+    const parts: YtObject[] = (meta?.metadataRows ?? []).flatMap((row: YtObject) => row.metadataParts ?? []);
+    const ownerId = parts.flatMap(part => part.text?.commandRuns ?? [])
+      .map(run => run.onTap?.innertubeCommand?.browseEndpoint?.browseId).find(id => typeof id === "string" && id.startsWith("UC"))
+      ?? item.shortBylineText?.runs?.[0]?.navigationEndpoint?.browseEndpoint?.browseId;
+    if (ownerId && ownerId !== (source === "clips" ? channels.clips : channels.main)) return;
+    const times = parts.flatMap(part => [part.accessibilityLabel, part.text?.content]);
+    times.push(item.publishedTimeText?.simpleText, item.publishedTimeText?.runs?.[0]?.text);
+    const publishedLabel = times.find(value => typeof value === "string" && /ago$/i.test(value));
+    const duration = badges.match(/"text":"((?:\d+:){1,2}\d\d)"/)?.[1] ?? item.lengthText?.simpleText;
+    rows.set(id, { id, title, duration, publishedLabel, sortTime: estimatedTime(publishedLabel), mixedFormats: source === "playlist",
+      live: /BADGE_STYLE_LIVE|STYLE_TYPE_LIVE_NOW|"text":"LIVE"/i.test(badges) });
   }
   scan(tab.content);
   if (!recognised) throw new Error("No recognisable YouTube listings");
   return [...rows.values()].slice(0, 5);
 }
 
-function durationLabel(seconds: number) {
-  if (!Number.isFinite(seconds) || seconds < 1) return "";
-  const mins = Math.floor(seconds / 60);
-  const tail = String(seconds % 60).padStart(2, "0");
-  return mins >= 60 ? Math.floor(mins / 60) + ":" + String(mins % 60).padStart(2, "0") + ":" + tail : mins + ":" + tail;
+function estimatedTime(label = "") {
+  const match = label.match(/(\d[\d,]*)\s*(second|sec|s|minute|min|m|hour|hr|h|day|d|week|w|month|mo|year|yr|y)s?\s+ago/i);
+  if (!match) return undefined;
+  const units: Record<string, number> = { s: 1, m: 60, h: 3600, d: 86400, w: 604800, mo: 2629800, y: 31557600 };
+  const unit = match[2].toLowerCase();
+  return Date.now() - Number(match[1].replace(/,/g, "")) * units[unit.startsWith("mo") ? "mo" : unit[0]] * 1000;
 }
 
-const readWatch = unstable_cache(async (id: string, channelId: string): Promise<Video | null> => {
+async function readWatch(id: string, channelId: string): Promise<Video | null> {
   const data = await readPage("https://www.youtube.com/watch?v=" + id, "ytInitialPlayerResponse");
   const details = data.videoDetails;
   const meta = data.microformat?.playerMicroformatRenderer;
   const broadcast = meta?.liveBroadcastDetails;
   const liveNow = broadcast?.isLiveNow === true;
   const playback = data.playabilityStatus;
-  if (!playback || /confirm you.re not a bot|try again later|temporarily unavailable/i.test(playback.reason ?? "")) {
+  if (!playback || /not a bot|try again later|temporarily unavailable/i.test(playback.reason ?? "")) {
     throw new Error("YouTube playback metadata temporarily unavailable");
   }
   if (playback.status !== "OK") return null;
@@ -98,63 +98,89 @@ const readWatch = unstable_cache(async (id: string, channelId: string): Promise<
   return {
     id, title, description: description.split(/\n\s*\n/)[0].slice(0, 500) || title,
     published: new Date(published).toISOString(), duration: durationLabel(Number(details.lengthSeconds)),
-    episodeNumber: ep, guest: ep ? guestByEpisode.get(ep) ?? null : null, liveNow,
+    episodeNumber: ep, guest: ep ? guests.get(ep) ?? null : null, liveNow,
     thumbnail: thumbnail || "https://i.ytimg.com/vi/" + id + "/mqdefault.jpg",
   };
-}, ["deep-drinks-watch-v1"], { revalidate: 300 });
+}
 
-const readSource = unstable_cache(async (source: Source, url: string) => {
+async function readSource(source: Source, known: Map<string, Video>, watching: Map<string, Promise<Video | null>>) {
+  const url = tabs[source];
   let candidates: Listing[];
   try {
-    const data = await readPage(url + (url.includes("?") ? "&" : "?") + "hl=en", "ytInitialData");
-    candidates = listings(data, source);
+    try {
+      const data = await readPage(url + (url.includes("?") ? "&" : "?") + "hl=en", "ytInitialData");
+      candidates = listings(data, source);
+    } catch (tabError) {
+      if (source === "playlist") throw tabError;
+      const channel = source === "clips" ? channels.clips : channels.main;
+      const listId = (source === "streams" ? "UULV" : "UULF") + channel.slice(2);
+      const data = await readPage("https://www.youtube.com/playlist?hl=en&list=" + listId, "ytInitialData");
+      candidates = listings(data, source);
+    }
   } catch (error) {
-    // A channel-wide feed can link a Short as a regular watch URL. Only the Videos tab
-    // and its verified snapshot can establish that an upload belongs in Latest clips.
+    // A channel-wide Atom feed may expose Shorts using regular watch URLs.
     if (source === "clips") throw error;
     const query = source === "playlist"
       ? new URLSearchParams({ playlist_id: new URL(url).searchParams.get("list")! })
-      : new URLSearchParams({ channel_id: channelIds.main });
+      : new URLSearchParams({ channel_id: channels.main });
     const entries = await fetchAtom(query);
-    candidates = entries.filter(entry => {
-      if (source === "uploads" || source === "streams") return !entry.short && Boolean(episodeNumber(entry.title));
-      return !entry.short;
-    }).slice(0, 5).map(entry => ({ ...entry, live: false }));
+    candidates = entries.filter(entry => !entry.short && (source === "playlist" || Boolean(episodeNumber(entry.title))))
+      .slice(0, 5).map(entry => ({ ...entry, live: false, mixedFormats: true }));
   }
-  const results = await Promise.allSettled(candidates.map(row => {
-    const historic = known.get(row.id);
-    if (historic && !historic.liveNow && !row.live) return { ...historic, title: row.title };
-    return readWatch(row.id, source === "clips" ? channelIds.clips : channelIds.main);
+  const results = await Promise.allSettled(candidates.map(async row => {
+    const previous = known.get(row.id);
+    if (previous?.published && !previous.liveNow && !row.live) return { ...previous, title: row.title };
+    const shortRuntime = (label: string) => label.split(":").reduce((seconds, field) => seconds * 60 + Number(field), 0) <= 180;
+    if (row.mixedFormats && !row.live && row.duration && shortRuntime(row.duration) && !await confirmedLandscape(row.id)) return null;
+    if (!watching.has(row.id)) watching.set(row.id, readWatch(row.id, source === "clips" ? channels.clips : channels.main));
+    try {
+      const video = await watching.get(row.id)!;
+      if (video && row.mixedFormats && !row.duration && !video.liveNow && shortRuntime(video.duration) && !await confirmedLandscape(row.id)) return null;
+      return video;
+    } catch (error) {
+      // The public tab can announce a new upload even when watch metadata is bot-gated.
+      // A relative YouTube label may be used for ordering, never as an exact upload date.
+      if (!row.live && (!row.duration || !row.publishedLabel)) throw error;
+      const number = episodeNumber(row.title) ?? previous?.episodeNumber ?? null;
+      return { id: row.id, title: row.title, published: "", publishedLabel: row.publishedLabel, sortTime: row.sortTime,
+        duration: row.duration || "", episodeNumber: number, guest: (number && guests.get(number)) || null,
+        liveNow: row.live, thumbnail: previous?.thumbnail || "https://i.ytimg.com/vi/" + row.id + "/hqdefault.jpg" };
+    }
   }));
-  const videos: Video[] = [];
-  for (const result of results) if (result.status === "fulfilled" && result.value) videos.push(result.value);
+  const videos = results.flatMap(result => result.status === "fulfilled" && result.value ? [result.value] : []);
   if (!videos.length && results.some(result => result.status === "rejected")) throw new Error("YouTube details unavailable");
   return videos;
-}, ["deep-drinks-source-v2"], { revalidate: 300 });
-
-function recent(groups: Video[][]) {
-  const unique = new Map<string, Video>();
-  for (const video of groups.flat()) unique.set(video.id, video);
-  return [...unique.values()].sort((a, b) => Number(b.liveNow) - Number(a.liveNow) || Date.parse(b.published) - Date.parse(a.published)).slice(0, 3);
 }
 
-export async function getVideoLibrary(): Promise<VideoLibrary> {
-  const names = Object.keys(sources) as Source[];
-  const results = await Promise.allSettled(names.map(name => readSource(name, sources[name])));
-  const groups = {} as Record<Source, Video[]>;
-  const failed = new Set<Source>();
+export const REFRESH_MS = 5 * 60 * 1000;
+export type FeedState = { checkedAt: number; groups: Groups; failed: Source[] };
+
+export async function refreshFeeds(previous?: FeedState, apiKey?: string): Promise<FeedState> {
+  const names = Object.keys(tabs) as Source[];
+  const known = new Map<string, Video>();
+  const historic = [...Object.values(snapshotVideos).flat(), ...Object.values(previous?.groups ?? {}).flat()];
+  for (const video of historic) known.set(video.id, video);
+  const official: Groups = apiKey ? await readOfficial(apiKey, known).catch(() => ({})) : {};
+  const watching = new Map<string, Promise<Video | null>>();
+  const results = await Promise.allSettled(names.map(name => official[name] ?? readSource(name, known, watching)));
+  const groups: Groups = { ...previous?.groups };
+  const failed: Source[] = [];
   names.forEach((name, index) => {
     const result = results[index];
     if (result.status === "fulfilled") groups[name] = result.value;
-    else {
-      failed.add(name);
-      groups[name] = [];
-    }
+    else failed.push(name);
   });
-  const saved = { episodes: failed.has("playlist") && failed.has("uploads") && failed.has("streams"), clips: failed.has("clips") };
+  return { groups, failed, checkedAt: Date.now() };
+}
+
+export function videoLibrary(state: FeedState): VideoLibrary {
+  function from(source: Source) {
+    const videos = state.groups[source] ?? (source === "playlist" ? snapshotVideos.episodes : source === "clips" ? snapshotVideos.clips : []);
+    return state.failed.includes(source) ? videos.map(video => ({ ...video, liveNow: false })) : videos;
+  }
   return {
-    episodes: recent(saved.episodes ? [snapshot.episodes] : [groups.playlist, groups.uploads, groups.streams]),
-    clips: recent([saved.clips ? snapshot.clips : groups.clips]),
-    saved,
+    episodes: latest([...from("playlist"), ...from("uploads"), ...from("streams")]),
+    clips: latest(from("clips")),
+    saved: { episodes: (["playlist", "uploads", "streams"] as Source[]).every(name => state.failed.includes(name)), clips: state.failed.includes("clips") },
   };
 }

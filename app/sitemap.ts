@@ -1,10 +1,8 @@
 import type { MetadataRoute } from "next";
-import { SITE } from "@/site.config";
+import { absoluteUrl, pageDetails } from "@/lib/metadata";
+
+export const dynamic = "force-static";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return ["", "/about/david", "/about/david/headshots", "/support", "/contact", "/recommended-reading", "/equipment", "/disclaimer"].map(path => ({
-    url: SITE.url + (path || "/"),
-    changeFrequency: path === "" ? "hourly" : "monthly",
-    priority: path === "" ? 1 : 0.6,
-  }));
+  return Object.keys(pageDetails).map(path => ({ url: absoluteUrl(path) }));
 }
