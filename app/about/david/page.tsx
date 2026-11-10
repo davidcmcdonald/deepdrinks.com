@@ -6,7 +6,7 @@ import "./profile.css";
 
 export const metadata: Metadata = {
   title: "About David",
-  description: "Meet David McDonald, host of Deep Drinks. Watch his conversations with Jubilee Dawn and Harmonic Atheist, and browse his headshots.",
+  description: "Meet David McDonald, former Pentecostal youth pastor and host of Deep Drinks Podcast. Read his story and watch his interviews with Jubilee Dawn and Harmonic Atheist.",
   alternates: { canonical: "/about/david" },
 };
 
@@ -21,14 +21,16 @@ export default function AboutDavid() {
     <article className="david-story">
       <header className="david-title">
         <h1>About David<span className="heading-period">.</span></h1>
-        <p className="page-lead">David McDonald is the host of Deep Drinks.</p>
+        <blockquote className="bio-opening">
+          <p>When Aimee and I were planning our wedding, we considered “Here Comes the Sun” for the walk down the aisle. We opted not to include it because I worried we’d be giving each other the glory that belonged to God. Years later, it was the first song I danced to with our son, Atlas. I held him and swayed, and he looked me in the eyes.</p>
+        </blockquote>
         <a className="text-action" href="#interviews">Watch the interviews <Glyph name="down" /></a>
       </header>
-      <div className="bio-body" lang="la">
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam. Eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
-        <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.</p>
-        <p>Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?</p>
-        <p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident. Similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga.</p>
+      <div className="bio-body">
+        <p>David McDonald is a former Pentecostal youth pastor and the host of <em>Deep Drinks Podcast</em>. How do you see the world, and what shaped that view? Over a drink, David puts those questions to Bible scholars, philosophers, former cult members, religious leaders, war reporters and everyday people with a story to tell. He’s especially interested in what it takes to change a belief you once felt certain about.</p>
+        <p>David was still a Christian when he began researching creation and evolution as a side project. He expected the evidence to confirm his understanding of the world. As he worked through his questions, his faith slowly unravelled. Today he describes himself as a rationalist. He continues to pursue objective truth, but the evidence he’s seen no longer convinces him that God exists.</p>
+        <p>David speaks openly about living with anxiety and depression. He advocates for LGBTQ rights, women’s rights, rationality, kindness and intellectual honesty, all of which he finds too often missing from Sunday services.</p>
+        <p>Away from the microphone, David is Aimee’s husband, Atlas’s dad and a co-founder of Posty. He sometimes makes video games, loves to travel and considers himself a professional amateur photographer.</p>
       </div>
       <aside className="profile-aside">
         <Link href="/about/david/headshots" className="headshots-teaser">

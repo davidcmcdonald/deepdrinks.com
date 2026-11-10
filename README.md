@@ -15,7 +15,7 @@ Open [the local preview](http://127.0.0.1:3125/). The production build is `npm r
 
 ## Pages
 
-The homepage contains the latest episodes, landscape clips and the About section. The About menu links to that section and to `/about/david`, where David’s biography and two embedded interviews live. The biography currently uses placeholder copy. The headshot gallery at `/about/david/headshots` includes four original JPEG downloads. The old `/about` address redirects to `/#about`.
+The homepage contains the latest episodes, landscape clips and the About section. The About menu links to that section and to `/about/david`, where David’s biography and two embedded interviews live. The headshot gallery at `/about/david/headshots` includes four original JPEG downloads. The old `/about` address redirects to `/#about`.
 
 ## YouTube
 

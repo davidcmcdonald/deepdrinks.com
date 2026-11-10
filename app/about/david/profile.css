@@ -2,7 +2,7 @@
 .breadcrumbs a:hover { color: var(--white); }
 .david-story { display: grid; grid-template: "intro portrait" auto "bio portrait" 1fr / minmax(0, 1.25fr) minmax(0, .88fr); column-gap: clamp(32px, 7.5vw, 125px); align-items: start; }
 .david-title { grid-area: intro; }
-.david-title .page-lead { margin-top: 13px; }
+.bio-opening { max-width: 53ch; margin: 20px 0 8px; padding-left: clamp(14px, 1.4vw, 22px); border-left: 2px solid var(--muted); font-size: clamp(1.06rem, 1.35vw, 1.25rem); line-height: 1.55; }
 .david-title .text-action { margin-block: 6px 14px; }
 .bio-body { grid-area: bio; max-width: 67ch; color: var(--fog); font-size: 1rem; line-height: 1.72; }
 .bio-body p + p { margin-top: 1em; }
