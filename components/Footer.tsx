@@ -5,7 +5,7 @@ import Glyph from "./Glyph";
 
 export default function Footer() {
   return (
-    <footer className="footer">
+    <footer className="footer" id="footer">
       <div className="shell footer-main">
         <div className="footer-brand">
           <Link href="/" aria-label="Deep Drinks home"><Image src={SITE.logo} alt="Deep Drinks" width={126} height={65} unoptimized /></Link>
@@ -21,11 +21,14 @@ export default function Footer() {
           <Link href="/recommended-reading">Recommended reading</Link>
           <Link href="/equipment">Equipment I use</Link>
           <Link href="/support">Support</Link>
-        </nav>
-        <nav aria-label="Contact and links">
           <Link href="/contact">Contact</Link>
-          <a href={SITE.socials.hub} rel="noreferrer" target="_blank">All social links <Glyph name="out" /></a>
           <Link href="/disclaimer">Disclaimer</Link>
+        </nav>
+        <nav aria-label="Follow Deep Drinks">
+          <a href={SITE.socials.twitter} rel="noreferrer" target="_blank">X (Twitter) <Glyph name="out" /></a>
+          <a href={SITE.socials.instagram} rel="noreferrer" target="_blank">Instagram <Glyph name="out" /></a>
+          <a href={SITE.socials.bluesky} rel="noreferrer" target="_blank">Bluesky <Glyph name="out" /></a>
+          <a href={SITE.socials.hub} rel="noreferrer" target="_blank">All social links <Glyph name="out" /></a>
         </nav>
       </div>
     </footer>
