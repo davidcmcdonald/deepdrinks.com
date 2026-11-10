@@ -1,30 +1,37 @@
 import type { Metadata } from "next";
 import { SITE } from "@/site.config";
 import Glyph from "@/components/Glyph";
-import { PatreonIcon, YouTubeIcon } from "@/components/Icons";
+import { PatreonIcon, YouTubeIcon, PayPalIcon, CoffeeIcon } from "@/components/Icons";
 import TrackLink from "@/components/TrackLink";
 
-export const metadata: Metadata = { title: "Support", description: "Support the Deep Drinks podcast on Patreon or through a YouTube channel membership.", alternates: { canonical: "/support" } };
+export const metadata: Metadata = {
+  title: "Support",
+  description: "Support Deep Drinks with a membership on Patreon or YouTube, or a contribution through PayPal or Buy Me a Coffee.",
+  alternates: { canonical: "/support" },
+};
+
+const options = [
+  { title: "Patreon", text: "Explore David’s supporter tiers and choose a membership that works for you.", href: SITE.socials.patreon, action: "Support on Patreon", event: "patreon", icon: PatreonIcon },
+  { title: "Channel memberships", text: "Become a member on the Deep Drinks YouTube channel, right where you watch the show.", href: SITE.socials.members, action: "Join on YouTube", event: "members", icon: YouTubeIcon },
+  { title: "PayPal", text: "Send David a one-off contribution in an amount you choose.", href: SITE.socials.paypal, action: "Support with PayPal", event: "paypal", icon: PayPalIcon },
+  { title: "Buy Me a Coffee", text: "Enjoyed an interview? Send David a coffee and leave a note about the episode.", href: SITE.socials.coffee, action: "Buy David a coffee", event: "coffee", icon: CoffeeIcon },
+];
 
 export default function Support() {
   return <section className="shell inner-page support-page">
     <a className="back-link" href="/">Deep Drinks <span>/</span></a>
     <div className="page-heading"><h1>Support Deep Drinks<span className="heading-period">.</span></h1>
-      <p className="page-lead">Help David keep the conversations going. Choose a membership through Patreon or join the show on YouTube.</p>
+      <p className="page-lead">Help David keep the conversations going with a membership or a one-off contribution.</p>
     </div>
     <div className="support-grid">
-      <article className="support-card">
-        <span className="platform-mark"><PatreonIcon width="32" height="32" /></span>
-        <h2>Patreon</h2>
-        <p>Explore David’s supporter tiers and choose a membership that works for you.</p>
-        <TrackLink className="button primary" href={SITE.socials.patreon} target="_blank" rel="noreferrer" event="support_click" params={{type:"patreon"}}>Support on Patreon <Glyph name="out" /></TrackLink>
-      </article>
-      <article className="support-card">
-        <span className="platform-mark"><YouTubeIcon width="38" height="38" /></span>
-        <h2>Channel memberships</h2>
-        <p>Become a member on the Deep Drinks YouTube channel, right where you watch the show.</p>
-        <TrackLink className="button secondary" href={SITE.socials.members} target="_blank" rel="noreferrer" event="support_click" params={{type:"members"}}>Join on YouTube <Glyph name="out" /></TrackLink>
-      </article>
+      {options.map(({ title, text, href, action, event, icon: Icon }) => <article className="support-card" key={event}>
+        <span className="platform-mark"><Icon width={34} height={34} /></span>
+        <h2>{title}</h2>
+        <p>{text}</p>
+        <TrackLink className="button secondary" href={href} target="_blank" rel="noreferrer" event="support_click" params={{type: event}}>
+          {action} <Glyph name="out" />
+        </TrackLink>
+      </article>)}
     </div>
   </section>;
 }

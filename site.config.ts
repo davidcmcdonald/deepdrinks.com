@@ -10,7 +10,6 @@ export const SITE = {
   youtubeChannel: channel,
   playlist: youtube + "/playlist?list=" + encodeURIComponent(playlistId),
   clips: youtube + "/@DeepDrinksClips/videos",
-  shorts: channel + "/shorts",
   email: "david@deepdrinks.com",
   socials: {
     youtube: channel,
@@ -19,5 +18,7 @@ export const SITE = {
     hub: "https://posty.bio/@deepdrinks",
     patreon: "https://www.patreon.com/c/DeepDrinks",
     members: youtube + "/channel/UCB9JcmYVd-oHcZyCNraCiug/join",
+    paypal: "https://paypal.me/davidmcdonald89",
+    coffee: "https://buymeacoffee.com/davidmcdonald",
   },
 };

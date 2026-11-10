@@ -15,6 +15,7 @@ export default function Footer() {
           <a href="/#episodes">Recent episodes</a>
           <a href="/#clips">Latest clips</a>
           <a href="/#about">About the show</a>
+          <Link href="/about/david">About David</Link>
         </nav>
         <nav aria-label="Resources and support">
           <Link href="/recommended-reading">Recommended reading</Link>

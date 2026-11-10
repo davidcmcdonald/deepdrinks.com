@@ -10,7 +10,6 @@ const sources = {
   uploads: SITE.youtubeChannel + "/videos",
   streams: SITE.youtubeChannel + "/streams",
   clips: SITE.clips,
-  shorts: SITE.shorts,
 };
 type Source = keyof typeof sources;
 const channelIds = { main: "UCB9JcmYVd-oHcZyCNraCiug", clips: "UCGxCnL5ls8n4QvAJkrrDDXQ" };
@@ -42,19 +41,22 @@ function listings(data: YtObject, source: Source): Listing[] {
   let recognised = false;
   function scan(node: YtObject) {
     if (!node || typeof node !== "object") return;
-    const item = node.lockupViewModel ?? node.playlistVideoRenderer ?? node.videoRenderer ?? node.shortsLockupViewModel ?? node.reelItemRenderer;
+    if (node.shortsLockupViewModel || node.reelItemRenderer || node.reelShelfRenderer) return;
+    const item = node.lockupViewModel ?? node.playlistVideoRenderer ?? node.videoRenderer;
     if (!item) {
       Object.values(node).forEach(scan);
       return;
     }
     if (item.contentType && item.contentType !== "LOCKUP_CONTENT_TYPE_VIDEO") return;
-    const id = item.contentId ?? item.videoId ?? item.onTap?.innertubeCommand?.reelWatchEndpoint?.videoId;
+    const destination = item.rendererContext?.commandContext?.onTap?.innertubeCommand ?? item.navigationEndpoint;
+    if (destination?.reelWatchEndpoint || destination?.commandMetadata?.webCommandMetadata?.url?.startsWith("/shorts/")) return;
+    const id = item.contentId ?? item.videoId;
     const title = item.metadata?.lockupMetadataViewModel?.title?.content ?? item.overlayMetadata?.primaryText?.content
       ?? item.title?.simpleText ?? item.headline?.simpleText ?? item.title?.runs?.map((run: YtObject) => run.text).join("");
     if (typeof id !== "string" || !/^[\w-]{11}$/.test(id) || typeof title !== "string") return;
     recognised = true;
     const badges = JSON.stringify([item.badges, item.contentImage?.thumbnailViewModel?.overlays, item.thumbnailOverlays, item.metadata?.lockupMetadataViewModel?.metadata]);
-    if (item.isPlayable === false || item.upcomingEventData || /UPCOMING|BADGE_MEMBERS_ONLY|MEMBERS_ONLY|"text":"Upcoming"|Members only/i.test(badges)) return;
+    if (item.isPlayable === false || item.upcomingEventData || /UPCOMING|MEMBERS_ONLY|SHORTS|"text":"Upcoming"|Members only/i.test(badges)) return;
     if ((source === "uploads" || source === "streams") && !episodeNumber(title)) return;
     if (/^\[(Private|Deleted) video\]$/i.test(title)) return;
     rows.set(id, { id, title, live: /BADGE_STYLE_LIVE|STYLE_TYPE_LIVE_NOW|"text":"LIVE"/i.test(badges) });
@@ -71,7 +73,7 @@ function durationLabel(seconds: number) {
   return mins >= 60 ? Math.floor(mins / 60) + ":" + String(mins % 60).padStart(2, "0") + ":" + tail : mins + ":" + tail;
 }
 
-const readWatch = unstable_cache(async (id: string, channelId: string, short: boolean): Promise<Video | null> => {
+const readWatch = unstable_cache(async (id: string, channelId: string): Promise<Video | null> => {
   const data = await readPage("https://www.youtube.com/watch?v=" + id, "ytInitialPlayerResponse");
   const details = data.videoDetails;
   const meta = data.microformat?.playerMicroformatRenderer;
@@ -97,7 +99,7 @@ const readWatch = unstable_cache(async (id: string, channelId: string, short: bo
     id, title, description: description.split(/\n\s*\n/)[0].slice(0, 500) || title,
     published: new Date(published).toISOString(), duration: durationLabel(Number(details.lengthSeconds)),
     episodeNumber: ep, guest: ep ? guestByEpisode.get(ep) ?? null : null, liveNow,
-    thumbnail: short ? "https://i.ytimg.com/vi/" + id + "/frame0.jpg" : thumbnail || "https://i.ytimg.com/vi/" + id + "/mqdefault.jpg",
+    thumbnail: thumbnail || "https://i.ytimg.com/vi/" + id + "/mqdefault.jpg",
   };
 }, ["deep-drinks-watch-v1"], { revalidate: 300 });
 
@@ -106,13 +108,15 @@ const readSource = unstable_cache(async (source: Source, url: string) => {
   try {
     const data = await readPage(url + (url.includes("?") ? "&" : "?") + "hl=en", "ytInitialData");
     candidates = listings(data, source);
-  } catch {
+  } catch (error) {
+    // A channel-wide feed can link a Short as a regular watch URL. Only the Videos tab
+    // and its verified snapshot can establish that an upload belongs in Latest clips.
+    if (source === "clips") throw error;
     const query = source === "playlist"
       ? new URLSearchParams({ playlist_id: new URL(url).searchParams.get("list")! })
-      : new URLSearchParams({ channel_id: source === "clips" ? channelIds.clips : channelIds.main });
+      : new URLSearchParams({ channel_id: channelIds.main });
     const entries = await fetchAtom(query);
     candidates = entries.filter(entry => {
-      if (source === "shorts") return entry.short;
       if (source === "uploads" || source === "streams") return !entry.short && Boolean(episodeNumber(entry.title));
       return !entry.short;
     }).slice(0, 5).map(entry => ({ ...entry, live: false }));
@@ -120,13 +124,13 @@ const readSource = unstable_cache(async (source: Source, url: string) => {
   const results = await Promise.allSettled(candidates.map(row => {
     const historic = known.get(row.id);
     if (historic && !historic.liveNow && !row.live) return { ...historic, title: row.title };
-    return readWatch(row.id, source === "clips" ? channelIds.clips : channelIds.main, source === "shorts");
+    return readWatch(row.id, source === "clips" ? channelIds.clips : channelIds.main);
   }));
   const videos: Video[] = [];
   for (const result of results) if (result.status === "fulfilled" && result.value) videos.push(result.value);
   if (!videos.length && results.some(result => result.status === "rejected")) throw new Error("YouTube details unavailable");
   return videos;
-}, ["deep-drinks-source-v1"], { revalidate: 300 });
+}, ["deep-drinks-source-v2"], { revalidate: 300 });
 
 function recent(groups: Video[][]) {
   const unique = new Map<string, Video>();
@@ -147,11 +151,10 @@ export async function getVideoLibrary(): Promise<VideoLibrary> {
       groups[name] = [];
     }
   });
-  const saved = { episodes: failed.has("playlist") && failed.has("uploads") && failed.has("streams"), clips: failed.has("clips"), shorts: failed.has("shorts") };
+  const saved = { episodes: failed.has("playlist") && failed.has("uploads") && failed.has("streams"), clips: failed.has("clips") };
   return {
     episodes: recent(saved.episodes ? [snapshot.episodes] : [groups.playlist, groups.uploads, groups.streams]),
     clips: recent([saved.clips ? snapshot.clips : groups.clips]),
-    shorts: recent([saved.shorts ? snapshot.shorts : groups.shorts]),
     saved,
   };
 }

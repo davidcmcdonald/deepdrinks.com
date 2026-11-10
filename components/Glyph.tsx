@@ -3,6 +3,10 @@ import type { SVGProps } from "react";
 const strokes = {
   out: "M5 19 19 5M6 5h13v13",
   right: "M4 12h15m-6-6 6 6-6 6",
+  left: "M20 12H5m6-6-6 6 6 6",
+  download: "M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5",
+  search: "M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Zm-2 5 6 6",
+  person: "M16 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM4 21a8 8 0 0 1 16 0",
   down: "M12 4v15m-6-6 6 6 6-6",
   chevron: "m6 9 6 6 6-6",
   menu: "M3 7h18M3 12h18M3 17h18",

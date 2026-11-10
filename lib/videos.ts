@@ -10,16 +10,14 @@ export type Video = {
   liveNow: boolean;
 };
 
-export type VideoKind = "episodes" | "clips" | "shorts";
+export type VideoKind = "episodes" | "clips";
 
 export type VideoLibrary = Record<VideoKind, Video[]> & {
   saved: Record<VideoKind, boolean>;
 };
 
-export function videoUrl(video: Video, kind: VideoKind) {
-  return kind === "shorts"
-    ? "https://www.youtube.com/shorts/" + video.id
-    : "https://www.youtube.com/watch?v=" + video.id;
+export function videoUrl(video: Video) {
+  return "https://www.youtube.com/watch?v=" + video.id;
 }
 
 const showNumber = /\bDeep Drinks(?:\s+Podcast)?\s*(?:[|:–—-]\s*)?(?:#|Ep(?:isode)?\.?\s*#?)\s*(\d+)\b/i;

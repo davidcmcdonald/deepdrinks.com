@@ -3,10 +3,10 @@ import TrackLink from "./TrackLink";
 import Glyph from "./Glyph";
 
 export default function VideoCard({ video, kind }: { video: Video; kind: VideoKind }) {
-  const label = kind === "episodes" ? "Episode" : kind === "shorts" ? "Short" : "Clip";
+  const label = kind === "episodes" ? "Episode" : "Clip";
   return (
-    <article className={"video-card " + (kind === "shorts" ? "short-card" : "")}>
-      <TrackLink className="video-link" href={videoUrl(video, kind)} target="_blank" rel="noreferrer" event="video_click"
+    <article className="video-card">
+      <TrackLink className="video-link" href={videoUrl(video)} target="_blank" rel="noreferrer" event="video_click"
         params={{ video_id: video.id, title: video.title, list: kind }}>
         <div className="video-art">
           <img src={video.thumbnail} alt="" width={640} height={360} loading="lazy" decoding="async" />

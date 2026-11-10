@@ -1,0 +1,58 @@
+.breadcrumbs { display: flex; align-items: center; flex-wrap: wrap; gap: 11px; margin-bottom: 23px; color: var(--muted); font-size: .73rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.breadcrumbs a:hover { color: var(--white); }
+.david-story { display: grid; grid-template: "intro portrait" auto "bio portrait" 1fr / minmax(0, 1.25fr) minmax(0, .88fr); column-gap: clamp(32px, 7.5vw, 125px); align-items: start; }
+.david-title { grid-area: intro; }
+.david-title .page-lead { margin-top: 13px; }
+.david-title .text-action { margin-block: 6px 14px; }
+.bio-body { grid-area: bio; max-width: 67ch; color: var(--fog); font-size: 1rem; line-height: 1.72; }
+.bio-body p + p { margin-top: 1em; }
+.profile-aside { grid-area: portrait; }
+.headshots-teaser { display: block; max-width: 470px; margin-left: auto; }
+.headshots-teaser img { width: 100%; border-radius: 5px; height: auto; }
+.headshots-teaser > span { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 1px; border-bottom: 1px solid var(--line); color: var(--fog); font-weight: 630; font-size: .93rem; }
+.headshots-teaser:hover > span { color: var(--white); border-color: var(--muted); }
+.interviews-section { border-top: 1px solid var(--line); margin-top: clamp(40px, 5vw, 72px); padding-top: clamp(32px, 4vw, 58px); }
+.interviews-section h2 { font-size: clamp(2rem, 3.1vw, 3.25rem); line-height: 1.1; font-weight: 650; letter-spacing: -.055em; }
+.interview-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(20px, 3vw, 42px); }
+.interview-screen { position: relative; overflow: hidden; width: 100%; aspect-ratio: 16 / 9; border-radius: 5px; background: var(--card); }
+.interview-screen iframe, .interview-poster, .interview-poster img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.interview-screen iframe { border: 0; }
+.interview-poster { border: 0; padding: 0; background: transparent; color: var(--white); }
+.interview-poster:focus-visible { outline-offset: -5px; }
+.interview-poster img { object-fit: cover; }
+.interview-play { position: absolute; inset: 50% auto auto 50%; transform: translate(-50%, -50%); width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; background: rgb(10 14 19 / .87); border: 1px solid rgb(255 255 255 / .75); }
+.interview-poster:hover .interview-play { background: var(--white); color: var(--ink); }
+.interview-card .video-meta { margin-top: 17px; }
+.interview-card h3 { margin-top: 7px; font-size: clamp(1.22rem, 1.85vw, 1.85rem); letter-spacing: -.035em; line-height: 1.2; font-weight: 640; }
+.interview-detail { margin-top: 7px; color: var(--muted); font-size: .91rem; }
+.headshot-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(16px, 2vw, 32px); margin-top: 32px; align-items: start; }
+.headshot-grid figure { margin: 0; min-width: 0; }
+.headshot-thumb { display: grid; place-items: center; aspect-ratio: 1; overflow: hidden; border-radius: 5px; background: var(--card); }
+.headshot-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.headshot-grid h2, .lightbox-bar h2 { margin-top: 12px; font-size: 1.12rem; line-height: 1.25; letter-spacing: -.03em; font-weight: 620; }
+.headshot-grid figcaption .text-action { font-size: .81rem; }
+.photo-dialog { position: fixed; inset: 0; margin: auto; padding: 0; max-width: calc(100vw - 28px); width: fit-content; max-height: 96dvh; border: none; background: transparent; color: var(--white); }
+.photo-dialog::backdrop { background: rgb(4 5 7 / .90); }
+body:has(.photo-dialog[open]) { overflow: hidden; }
+.lightbox { background: var(--ink); border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+.lightbox-photo { display: block; width: auto; height: auto; max-height: calc(94dvh - 116px); max-width: min(86vw, 1100px); object-fit: contain; margin: auto; }
+.lightbox-bar { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 4px 9px 4px 14px; min-height: 48px; }
+.lightbox-bar h2 { margin: 0; }
+.lightbox-controls { display: flex; gap: 2px; }
+.lightbox-button { display: grid; place-items: center; min-width: 40px; min-height: 40px; color: var(--fog); background: transparent; border: 0; border-radius: 4px; }
+.lightbox-button:hover { background: var(--card); color: var(--white); }
+.lightbox-button:focus-visible { outline-offset: -3px; }
+
+@media (max-width: 900px) {
+  .headshot-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 740px) {
+  .david-story { grid-template: "intro" auto "portrait" auto "bio" auto / 1fr; row-gap: 20px; }
+  .david-title .text-action { margin-bottom: 0; }
+  .headshots-teaser { margin: 0; max-width: none; }
+  .headshots-teaser img { aspect-ratio: 1.8; object-fit: cover; object-position: 50% 32%; }
+  .bio-body { font-size: .96rem; }
+  .interview-grid { grid-template-columns: 1fr; gap: 27px; }
+  .headshot-grid { row-gap: 22px; }
+  .lightbox-photo { max-width: 91vw; }
+}

@@ -16,14 +16,14 @@ export const metadata: Metadata = { alternates: { canonical: "/" } };
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const { episodes, clips, shorts, saved } = await getVideoLibrary();
+  const { episodes, clips, saved } = await getVideoLibrary();
   const latest = episodes[0];
   return (
     <>
       <FeedRefresh />
       <JsonLd json={{ "@context": "https://schema.org", "@type": "CollectionPage", url: SITE.url, name: "Recent Deep Drinks episodes",
         hasPart: episodes.map(video => ({ "@type": "VideoObject", name: video.title, description: video.description || video.title, thumbnailUrl: new URL(video.thumbnail, SITE.url).href,
-          uploadDate: video.published, url: videoUrl(video, "episodes"), embedUrl: "https://www.youtube.com/embed/" + video.id })) }} />
+          uploadDate: video.published, url: videoUrl(video), embedUrl: "https://www.youtube.com/embed/" + video.id })) }} />
       <section className="hero" aria-labelledby="hero-title">
         <div className="hero-image">
           <img src="/images/david-studio-1600.webp" srcSet="/images/david-studio-800.webp 800w, /images/david-studio-1600.webp 1600w"
@@ -34,7 +34,7 @@ export default async function Home() {
           <h1 id="hero-title">Deep conversations<br/><em>over deep drinks.</em></h1>
           <p className="hero-description">Religion, philosophy, science and human rights, explored one conversation at a time.</p>
           <div className="hero-actions">
-            <TrackLink className="button primary" href={latest ? videoUrl(latest, "episodes") : SITE.playlist} target="_blank" rel="noreferrer"
+            <TrackLink className="button primary" href={latest ? videoUrl(latest) : SITE.playlist} target="_blank" rel="noreferrer"
               event="video_click" params={{ video_id: latest?.id, list: "hero" }}>
               <Glyph name="play" /> {latest?.liveNow ? "Watch live" : latest ? "Watch latest episode" : "Watch episodes"}
             </TrackLink>
@@ -54,7 +54,7 @@ export default async function Home() {
         {!episodes.length && <p className="feed-note">There are no public episodes in this feed yet.</p>}
       </section>
 
-      <Clips clips={clips} shorts={shorts} saved={saved} />
+      <Clips clips={clips} saved={saved.clips} />
 
       <section id="about" className="section about-section shell" aria-labelledby="about-heading">
         <div className="about-image"><Image src="/images/David-Mcdonald-of-Deep-Drinks-Podcast_Profile.jpg" alt="David McDonald" width={520} height={520} sizes="(max-width: 740px) 85vw, 32vw" /></div>
@@ -64,8 +64,8 @@ export default async function Home() {
           <p>Deep Drinks is a long-form interview podcast hosted by David McDonald. Over a favourite drink, David sits down with scholars, creators and people whose lives put the big questions into focus.</p>
           <p>The conversations move between religion, philosophy, science and human rights, with room for a guest to tell the whole story.</p>
           <div className="about-links">
-            <a className="text-action" href="https://www.youtube.com/watch?v=_GkdkDvW_p4" target="_blank" rel="noreferrer">David’s story <Glyph name="out"/></a>
-            <a className="text-action" href="https://www.youtube.com/watch?v=JQcMJKOzm8o" target="_blank" rel="noreferrer">Why Deep Drinks <Glyph name="out"/></a>
+            <Link className="text-action" href="/about/david">David’s story <Glyph name="right"/></Link>
+            <Link className="text-action" href="/about/david#harmonic-atheist">Why Deep Drinks <Glyph name="play"/></Link>
           </div>
           <div className="resource-links">
             <Link href="/recommended-reading"><Glyph name="book" /> Recommended reading <Glyph name="right" /></Link>
