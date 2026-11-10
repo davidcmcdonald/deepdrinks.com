@@ -1,34 +1,28 @@
-"use client";
+import { displayTitle, formatPublished, videoUrl, type Video, type VideoKind } from "@/lib/videos";
+import TrackLink from "./TrackLink";
+import Glyph from "./Glyph";
 
-import Image from "next/image";
-import type { Video } from "@/lib/playlist";
-import { format } from "@/lib/utils";
-import { track } from "@/lib/ga";
-
-export default function VideoCard({ v }: { v: Video }) {
+export default function VideoCard({ video, kind }: { video: Video; kind: VideoKind }) {
+  const label = kind === "episodes" ? "Episode" : kind === "shorts" ? "Short" : "Clip";
   return (
-    <a
-      href={v.link}
-      target="_blank"
-      rel="noreferrer"
-      className="group overflow-hidden rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition"
-      onClick={() => track("video_click", { video_id: v.id, title: v.title, list: "recent_episodes" })}
-    >
-      <div className="relative aspect-video">
-        {v.thumbnail && (
-          <Image
-            src={v.thumbnail}
-            alt={v.title}
-            fill
-            className="object-cover transition group-hover:scale-[1.03]"
-            sizes="(max-width: 768px) 100vw, 33vw"
-          />
-        )}
-      </div>
-      <div className="p-4">
-        <h3 className="font-semibold leading-snug">{v.title}</h3>
-        <p className="text-white/60 text-sm mt-1">{format(v.published)}</p>
-      </div>
-    </a>
+    <article className={"video-card " + (kind === "shorts" ? "short-card" : "")}>
+      <TrackLink className="video-link" href={videoUrl(video, kind)} target="_blank" rel="noreferrer" event="video_click"
+        params={{ video_id: video.id, title: video.title, list: kind }}>
+        <div className="video-art">
+          <img src={video.thumbnail} alt="" width={640} height={360} loading="lazy" decoding="async" />
+          {video.liveNow ? <span className="runtime live">Live now</span> : video.duration && <span className="runtime">{video.duration}</span>}
+          <span className="video-play"><Glyph name="play" /></span>
+        </div>
+        <div className="video-info">
+          <div className="video-meta">
+            <span>{label}{kind === "episodes" && video.episodeNumber ? " " + video.episodeNumber : ""}</span>
+            <span aria-hidden="true" className="meta-dot" />
+            <time dateTime={video.published}>{formatPublished(video.published)}</time>
+          </div>
+          <h3>{displayTitle(video)}</h3>
+          {video.guest && <p>With {video.guest}</p>}
+        </div>
+      </TrackLink>
+    </article>
   );
 }

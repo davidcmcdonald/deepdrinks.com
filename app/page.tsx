@@ -1,100 +1,78 @@
-import Link from "next/link";
 import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
 import { SITE } from "@/site.config";
-import { fetchPlaylist } from "@/lib/playlist";
+import { getVideoLibrary } from "@/lib/youtube";
+import { videoUrl } from "@/lib/videos";
 import VideoCard from "@/components/VideoCard";
-import Subscribe from "@/components/Subscribe";
-import { fetchChannelPlaylists } from "@/lib/channel";
-import JsonLd from "@/components/JsonLd";
+import Clips from "@/components/Clips";
+import FeedRefresh from "@/components/FeedRefresh";
+import Glyph from "@/components/Glyph";
 import TrackLink from "@/components/TrackLink";
+import JsonLd from "@/components/JsonLd";
 
-export const metadata: Metadata = {
-  title: "Home",
-  description:
-    "Deep conversations over deep drinks. Religion, philosophy, science & human rights — long-form chats with scholars, creators and everyday people.",
-  alternates: { canonical: "/" },
-};
+export const metadata: Metadata = { alternates: { canonical: "/" } };
+// The source lists cache independently. A fresh page can pick up newly published videos without a rebuild.
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const vids = await fetchPlaylist(SITE.playlistId, { max: 9 });
-  const playlists = await fetchChannelPlaylists(SITE.channelHandle, { limit: 6 });
-
-  // VideoObject JSON-LD for the 9 visible videos
-  const videoObjects = vids.map(v => ({
-    "@type": "VideoObject",
-    name: v.title,
-    description: v.description?.slice(0, 500) || v.title,
-    thumbnailUrl: v.thumbnail ? [v.thumbnail] : undefined,
-    uploadDate: v.published,
-    url: v.link,
-    embedUrl: `https://www.youtube.com/embed/${v.id}`,
-    publisher: { "@type": "Organization", name: "Deep Drinks Podcast", url: SITE.url },
-  }));
-
-  const homepageLd = {
-    "@context": "https://schema.org",
-    "@type": "CollectionPage",
-    name: "Deep Drinks Podcast — Recent Episodes",
-    url: SITE.url,
-    hasPart: videoObjects,
-  };
-
+  const { episodes, clips, shorts, saved } = await getVideoLibrary();
+  const latest = episodes[0];
   return (
-    <div className="space-y-10">
-      <JsonLd json={homepageLd} />
+    <>
+      <FeedRefresh />
+      <JsonLd json={{ "@context": "https://schema.org", "@type": "CollectionPage", url: SITE.url, name: "Recent Deep Drinks episodes",
+        hasPart: episodes.map(video => ({ "@type": "VideoObject", name: video.title, description: video.description || video.title, thumbnailUrl: new URL(video.thumbnail, SITE.url).href,
+          uploadDate: video.published, url: videoUrl(video, "episodes"), embedUrl: "https://www.youtube.com/embed/" + video.id })) }} />
+      <section className="hero" aria-labelledby="hero-title">
+        <div className="hero-image">
+          <img src="/images/david-studio-1600.webp" srcSet="/images/david-studio-800.webp 800w, /images/david-studio-1600.webp 1600w"
+            sizes="(max-width: 740px) 100vw, 66vw" fetchPriority="high" alt="David McDonald at the microphone in the Deep Drinks studio" width="1600" height="1095" />
+        </div>
+        <div className="shell hero-shell"><div className="hero-copy">
+          <p className="host-line"><span className="signal" aria-hidden="true"><i/><i/><i/><i/><i/></span> With David McDonald</p>
+          <h1 id="hero-title">Deep conversations<br/><em>over deep drinks.</em></h1>
+          <p className="hero-description">Religion, philosophy, science and human rights, explored one conversation at a time.</p>
+          <div className="hero-actions">
+            <TrackLink className="button primary" href={latest ? videoUrl(latest, "episodes") : SITE.playlist} target="_blank" rel="noreferrer"
+              event="video_click" params={{ video_id: latest?.id, list: "hero" }}>
+              <Glyph name="play" /> {latest?.liveNow ? "Watch live" : latest ? "Watch latest episode" : "Watch episodes"}
+            </TrackLink>
+            <a href="#clips" className="hero-secondary">Explore clips <Glyph name="down" /></a>
+          </div>
+        </div></div>
+      </section>
 
-      <section className="card relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(60rem_20rem_at_50%_-20%,white,transparent)]" />
-        <div className="relative">
-          <h1 className="text-3xl md:text-5xl font-extrabold leading-tight">
-            Deep Conversations over Deep Drinks
-          </h1>
-          <p className="text-white/70 mt-3 max-w-2xl">
-            Religion, philosophy, science & human rights — long-form chats with scholars, creators and everyday people.
-          </p>
-          <div className="mt-6 flex gap-3">
-            <Link href={SITE.youtubeChannel} target="_blank" className="btn">Watch on YouTube</Link>
-            <Link href="/about" className="btn-secondary">About the show</Link>
+      <section id="episodes" className="section episodes-section shell" aria-labelledby="episodes-heading">
+        <div className="section-heading">
+          <div><h2 id="episodes-heading">Recent episodes<span className="heading-period">.</span></h2>
+            <p>Full-length interviews with David and his guests.</p></div>
+          <a href={SITE.playlist} className="text-action" target="_blank" rel="noreferrer">All episodes <Glyph name="out" /></a>
+        </div>
+        {saved.episodes && <p className="feed-note">Showing the last saved YouTube listings.</p>}
+        <div className="video-grid">{episodes.map(video => <VideoCard key={video.id} video={video} kind="episodes" />)}</div>
+        {!episodes.length && <p className="feed-note">There are no public episodes in this feed yet.</p>}
+      </section>
+
+      <Clips clips={clips} shorts={shorts} saved={saved} />
+
+      <section id="about" className="section about-section shell" aria-labelledby="about-heading">
+        <div className="about-image"><Image src="/images/David-Mcdonald-of-Deep-Drinks-Podcast_Profile.jpg" alt="David McDonald" width={520} height={520} sizes="(max-width: 740px) 85vw, 32vw" /></div>
+        <div className="about-copy">
+          <p className="section-kicker">About the show</p>
+          <h2 id="about-heading">Across the table<br/> with David.</h2>
+          <p>Deep Drinks is a long-form interview podcast hosted by David McDonald. Over a favourite drink, David sits down with scholars, creators and people whose lives put the big questions into focus.</p>
+          <p>The conversations move between religion, philosophy, science and human rights, with room for a guest to tell the whole story.</p>
+          <div className="about-links">
+            <a className="text-action" href="https://www.youtube.com/watch?v=_GkdkDvW_p4" target="_blank" rel="noreferrer">David’s story <Glyph name="out"/></a>
+            <a className="text-action" href="https://www.youtube.com/watch?v=JQcMJKOzm8o" target="_blank" rel="noreferrer">Why Deep Drinks <Glyph name="out"/></a>
+          </div>
+          <div className="resource-links">
+            <Link href="/recommended-reading"><Glyph name="book" /> Recommended reading <Glyph name="right" /></Link>
+            <Link href="/equipment"><Glyph name="mic" /> Equipment I use <Glyph name="right" /></Link>
           </div>
         </div>
       </section>
-
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Recent episodes</h2>
-          <TrackLink
-            href={`https://www.youtube.com/playlist?list=${SITE.playlistId}`}
-            className="btn-secondary"
-            target="_blank"
-            rel="noreferrer"
-            event="more_episodes_click"
-          >
-            More episodes →
-          </TrackLink>
-        </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {vids.map(v => <VideoCard key={v.id} v={v} />)}
-        </div>
-      </section>
-
-      {playlists.length > 0 && (
-        <section className="space-y-4">
-          <h2 className="text-2xl font-bold">Other playlists</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {playlists.map(p => (
-              <a key={p.id} href={p.url} target="_blank" rel="noreferrer" className="card hover:bg-white/10 transition">
-                <h3 className="text-lg font-semibold">{p.title}</h3>
-                <p className="text-white/60 text-sm mt-1">View on YouTube</p>
-              </a>
-            ))}
-          </div>
-          <p className="text-white/60 text-sm">
-            (This section updates automatically — if a playlist is removed from the channel, it disappears here after the next refresh.)
-          </p>
-        </section>
-      )}
-
-      <Subscribe />
-    </div>
+    </>
   );
 }

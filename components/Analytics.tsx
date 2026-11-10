@@ -17,10 +17,8 @@ export default function Analytics() {
   const searchParams = useSearchParams();
   const debug = process.env.NODE_ENV !== "production";
 
-  if (!id) return null;
-
   useEffect(() => {
-    if (typeof window === "undefined" || !window.gtag) return;
+    if (!id || typeof window === "undefined" || !window.gtag) return;
     const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "");
     window.gtag("event", "page_view", {
       page_path: url,
@@ -29,7 +27,9 @@ export default function Analytics() {
       ...(debug ? { debug_mode: true } : {}),
     });
     if (debug) console.debug("[GA] page_view →", url);
-  }, [pathname, searchParams, debug]);
+  }, [id, pathname, searchParams, debug]);
+
+  if (!id) return null;
 
   return (
     <>

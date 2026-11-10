@@ -1,59 +1,18 @@
 import type { Metadata } from "next";
 import { SITE } from "@/site.config";
-import TrackLink from "@/components/TrackLink";
-import JsonLd from "@/components/JsonLd";
+import Glyph from "@/components/Glyph";
+import ContactForm from "@/components/ContactForm";
 
-export const metadata: Metadata = {
-  title: "Contact",
-  description: "Contact Deep Drinks Podcast — bookings, collaborations, and general enquiries.",
-  alternates: { canonical: "/contact" },
-};
+export const metadata: Metadata = { title: "Contact", description: "Contact David McDonald about Deep Drinks guest pitches, collaborations or general enquiries.", alternates: { canonical: "/contact" } };
 
 export default function Contact() {
-  const breadcrumbs = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: SITE.url },
-      { "@type": "ListItem", position: 2, name: "Contact", item: SITE.url + "/contact" },
-    ],
-  };
-
-  return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <JsonLd json={breadcrumbs} />
-
-      <h1 className="text-3xl font-extrabold">Contact</h1>
-
-      <div className="card space-y-2">
-        <p>For bookings, collaborations, or general enquiries:</p>
-        <p className="text-xl">
-          <TrackLink className="underline" href={SITE.socials.email} event="contact_click" params={{ method: "email" }}>
-            david@deepdrinks.com
-          </TrackLink>
-        </p>
-      </div>
-
-      <div className="card space-y-2">
-        <h2 className="text-xl font-semibold">Support Deep Drinks</h2>
-        <ul className="list-disc list-inside text-white/80 space-y-1">
-          <li>
-            <TrackLink className="underline" href={SITE.socials.patreon} target="_blank" rel="noreferrer" event="support_click" params={{ type: "patreon" }}>
-              Patreon
-            </TrackLink>
-          </li>
-          <li>
-            <TrackLink className="underline" href={SITE.socials.members} target="_blank" rel="noreferrer" event="support_click" params={{ type: "members" }}>
-              YouTube Channel Members
-            </TrackLink>
-          </li>
-          <li>
-            <TrackLink className="underline" href={SITE.socials.merch} target="_blank" rel="noreferrer" event="support_click" params={{ type: "merch" }}>
-              Merch Store
-            </TrackLink>
-          </li>
-        </ul>
-      </div>
+  return <section className="shell inner-page contact-page">
+    <div className="contact-intro">
+      <a className="back-link" href="/">Deep Drinks <span>/</span></a>
+      <h1>Contact<span className="heading-period">.</span></h1>
+      <p className="page-lead">Have a guest in mind, a question about an episode, or something you’d like to work on together?</p>
+      <a className="text-action contact-mail" href={"mailto:" + SITE.email}><Glyph name="mail" /> {SITE.email}</a>
     </div>
-  );
+    <ContactForm />
+  </section>;
 }

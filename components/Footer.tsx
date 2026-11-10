@@ -1,19 +1,31 @@
+import Image from "next/image";
 import Link from "next/link";
-import Socials from "@/components/Socials";
+import { SITE } from "@/site.config";
+import Glyph from "./Glyph";
 
 export default function Footer() {
   return (
-    <footer className="mt-20 border-t border-white/10 py-10 text-white/70">
-      <div className="container flex flex-col md:flex-row items-center gap-4 md:gap-8 justify-between">
-        <div className="flex items-center gap-6">
-          <p>&copy; {new Date().getFullYear()} Deep Drinks Podcast</p>
-          <p>Website by David</p>
+    <footer className="footer">
+      <div className="shell footer-main">
+        <div className="footer-brand">
+          <Link href="/" aria-label="Deep Drinks home"><Image src={SITE.logo} alt="Deep Drinks" width={126} height={65} unoptimized /></Link>
+          <span>© {new Date().getFullYear()} Deep Drinks Podcast</span>
         </div>
-        <div className="flex items-center gap-6">
+        <nav aria-label="Explore Deep Drinks">
+          <a href="/#episodes">Recent episodes</a>
+          <a href="/#clips">Latest clips</a>
+          <a href="/#about">About the show</a>
+        </nav>
+        <nav aria-label="Resources and support">
+          <Link href="/recommended-reading">Recommended reading</Link>
+          <Link href="/equipment">Equipment I use</Link>
+          <Link href="/support">Support</Link>
+        </nav>
+        <nav aria-label="Contact and links">
+          <Link href="/contact">Contact</Link>
+          <a href={SITE.socials.hub} rel="noreferrer" target="_blank">All social links <Glyph name="out" /></a>
           <Link href="/disclaimer">Disclaimer</Link>
-          <Link href="https://linktr.ee/deepdrinks" target="_blank" rel="noreferrer">Linktree</Link>
-          <Socials />
-        </div>
+        </nav>
       </div>
     </footer>
   );

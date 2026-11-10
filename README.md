@@ -1,49 +1,34 @@
-# Deep Drinks Podcast — Next.js Site
+# Deep Drinks Podcast
 
-A fast, modern site for **Deep Drinks Podcast**, built with **Next.js 14** (App Router) and **Tailwind CSS**.  
-It auto-updates from a **YouTube playlist** (via RSS, no API key) using **Incremental Static Regeneration**.
+A local redesign of [the Deep Drinks website](https://www.deepdrinks.com/), built on the existing Next.js App Router project. The [design audit](DESIGN-AUDIT.md) records the reference sites and the decisions taken from each.
 
-## ✨ Features
-- **Auto-updating Episodes:** Pulls the latest videos from a YouTube playlist RSS feed every hour.
-- **Home / Episode / About / Disclaimer** pages.
-- **Episode pages** with YouTube embeds and descriptions.
-- **Beautiful design** with Tailwind and subtle effects.
-- **No secrets required** — works out of the box on Vercel/GitHub.
+## Run the local preview
 
-## 🔧 Quick Start (Local)
-```bash
-npm i
-npm run dev   # http://localhost:3000
+From this checkout, run:
+
+```powershell
+npm ci
+npm run dev -- --hostname 127.0.0.1 --port 3125
 ```
 
-## 🚀 Deploy to Vercel
-1. Push this project to your GitHub as a new repository (e.g. `deepdrinks-site`).
-2. In Vercel, **Import Project** → select your repo → deploy.
-3. (Optional) Set an env var to point at a different playlist:
-   - `NEXT_PUBLIC_PLAYLIST_ID=YOUR_PLAYLIST_ID`
+Open [the local preview](http://127.0.0.1:3125/). The production build is `npm run build`.
 
-> Default playlist is the main "Deep Drinks Podcast" playlist.
+## Pages
 
-## 🔁 How "auto-update" works
-- The site fetches the **playlist RSS** and caches the result.  
-- With ISR (`revalidate: 3600`), pages are **regenerated in the background** at most once per hour.  
-- To refresh faster, reduce the `revalidate` number in `lib/playlist.ts`.
+The homepage contains the latest interviews, clips, Shorts and About section. The old `/about` address redirects to `/#about`. Support, contact, recommended reading, equipment and the disclaimer each have a direct route.
 
-## 🖼️ Add your photo
-Place a square headshot at: `public/images/profile.jpg` (e.g., 1200×1200).  
-It's used on the About page.
+## YouTube
 
-## 🧰 Customise
-- `site.config.ts` — site title, description, social links, playlist id.
-- `styles/globals.css` — theme & styles.
-- `app/**` — pages.
-- `components/**` — UI components.
+The server checks the [full episode playlist](https://www.youtube.com/playlist?list=PLLZG9iqwGS3M0_VyN7aGNEpsk9kWI7Zhg), the main channel’s [videos](https://www.youtube.com/@DeepDrinks/videos) and [streams](https://www.youtube.com/@DeepDrinks/streams), the [clips channel](https://www.youtube.com/@DeepDrinksClips/videos) and the main channel’s [Shorts](https://www.youtube.com/@DeepDrinks/shorts). Numbered show uploads can appear before they are added to the playlist. Public video IDs are deduplicated and sorted by publication time. Upcoming streams and members-only items are filtered. An active public broadcast takes priority.
 
-## 📝 Notes
-- The site uses **fast-xml-parser** to parse the YouTube RSS feed.  
-- Thumbnails use `https://i.ytimg.com/vi/VIDEO_ID/hqdefault.jpg`.
-- For a custom domain on Vercel, add your DNS and set `metadataBase` in `app/layout.tsx` to your final URL.
+Each listing is cached on the server for five minutes and refreshed on demand. An open, visible homepage requests fresh data every five minutes and on return after that interval. The site uses the public channel and watch pages with an Atom fallback. YouTube can change either interface. The checked-in snapshot in `data/youtube.json` and the recent local thumbnails provide an initial fallback during an upstream outage. Snapshot dates were checked against public watch pages on 10 November 2026. Dates display in Brisbane time.
 
----
+## Contact and affiliate pages
 
-Made for David McDonald / Deep Drinks Podcast.
+The contact form submits to FormSubmit for david@deepdrinks.com. FormSubmit can require a one-time activation email to that inbox on first use. To verify inbox delivery, submit the published form and complete the provider’s verification if prompted. [Provider documentation](https://formsubmit.co/)
+
+The product selections in `data/resources.ts` mirror the two Amazon lists linked from [David’s Posty page](https://posty.bio/@deepdrinks). They display directly on the site and include the original US affiliate tag and a disclosure. Update the local list when the Amazon selections change. The complete collection buttons always open the original lists.
+
+## Hosting
+
+This checkout is for local design review. When the design is approved, the intended migration destination is David McDonald’s personal Cloudflare account. The preview uses no hosting credentials.
