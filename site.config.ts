@@ -19,6 +19,7 @@ export const SITE = {
     twitter: "https://x.com/deepdrinkspod",
     instagram: "https://www.instagram.com/deepdrinkspodcast/",
     bluesky: "https://bsky.app/profile/deepdrinks.bsky.social",
+    tiktok: "https://www.tiktok.com/@deep.drinks",
     patreon: "https://www.patreon.com/c/DeepDrinks",
     members: youtube + "/channel/UCB9JcmYVd-oHcZyCNraCiug/join",
     paypal: "https://paypal.me/davidmcdonald89",

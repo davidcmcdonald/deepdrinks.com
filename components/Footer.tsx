@@ -28,6 +28,7 @@ export default function Footer() {
           <a href={SITE.socials.twitter} rel="noreferrer" target="_blank">X (Twitter) <Glyph name="out" /></a>
           <a href={SITE.socials.instagram} rel="noreferrer" target="_blank">Instagram <Glyph name="out" /></a>
           <a href={SITE.socials.bluesky} rel="noreferrer" target="_blank">Bluesky <Glyph name="out" /></a>
+          <a href={SITE.socials.tiktok} rel="noreferrer" target="_blank">TikTok <Glyph name="out" /></a>
           <a href={SITE.socials.hub} rel="noreferrer" target="_blank">All social links <Glyph name="out" /></a>
         </nav>
       </div>
