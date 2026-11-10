@@ -26,7 +26,8 @@ export default {
     const url = new URL(request.url);
     if (url.hostname === "deepdrinks.com") {
       url.protocol = "https:";
-      url.host = "www.deepdrinks.com";
+      url.hostname = "www.deepdrinks.com";
+      url.port = "";
       return Response.redirect(url, 308);
     }
     if (url.pathname === "/about" || url.pathname === "/about/") {

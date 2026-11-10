@@ -73,6 +73,11 @@ function estimatedTime(label = "") {
   return Date.now() - Number(match[1].replace(/,/g, "")) * units[unit.startsWith("mo") ? "mo" : unit[0]] * 1000;
 }
 
+function couldBeShort(duration: string) {
+  const seconds = duration.split(":").reduce((total, field) => total * 60 + Number(field), 0);
+  return seconds <= 180;
+}
+
 async function readWatch(id: string, channelId: string): Promise<Video | null> {
   const data = await readPage("https://www.youtube.com/watch?v=" + id, "ytInitialPlayerResponse");
   const details = data.videoDetails;
@@ -130,12 +135,11 @@ async function readSource(source: Source, known: Map<string, Video>, watching: M
   const results = await Promise.allSettled(candidates.map(async row => {
     const previous = known.get(row.id);
     if (previous?.published && !previous.liveNow && !row.live) return { ...previous, title: row.title };
-    const shortRuntime = (label: string) => label.split(":").reduce((seconds, field) => seconds * 60 + Number(field), 0) <= 180;
-    if (row.mixedFormats && !row.live && row.duration && shortRuntime(row.duration) && !await confirmedLandscape(row.id)) return null;
+    if (row.mixedFormats && !row.live && row.duration && couldBeShort(row.duration) && !await confirmedLandscape(row.id)) return null;
     if (!watching.has(row.id)) watching.set(row.id, readWatch(row.id, source === "clips" ? channels.clips : channels.main));
     try {
       const video = await watching.get(row.id)!;
-      if (video && row.mixedFormats && !row.duration && !video.liveNow && shortRuntime(video.duration) && !await confirmedLandscape(row.id)) return null;
+      if (video && row.mixedFormats && !row.duration && !video.liveNow && couldBeShort(video.duration) && !await confirmedLandscape(row.id)) return null;
       return video;
     } catch (error) {
       // The public tab can announce a new upload even when watch metadata is bot-gated.
