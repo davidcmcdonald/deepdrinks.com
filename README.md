@@ -26,6 +26,10 @@ The static HTML contains a verified set of episodes and clips. The homepage fetc
 
 The keyless reader uses YouTube’s public tabs and playlist pages. If a public watch page is bot-gated, a verified public tab can still announce a new video with YouTube’s relative publication label. Exact publication dates display in Brisbane time when available. The official YouTube Data API is an independent source for hosts that consistently receive blocked public pages. Enable YouTube Data API v3 in a Google project and store its API-restricted key as the Worker secret `YOUTUBE_API_KEY`. For local Next development use `.env.local`. Wrangler reads `.dev.vars` for local Worker development. [YouTube Data API credentials](https://developers.google.com/youtube/v3/getting-started) · [Worker secrets](https://developers.cloudflare.com/workers/configuration/secrets/)
 
+## Episode listening links
+
+The Recent episodes cards link each numbered interview to its audio release. The feed looks up missing episode IDs in the show’s Spotify listing and Apple Podcasts catalogue, matches the published episode number and saves each match. A platform appears once its audio release is available. The bundled IDs in `data/podcast-ids.json` cover the saved YouTube episodes. The artwork comes from [Apple Podcasts marketing tools](https://podcasters.apple.com/promote/) and [Spotify’s logo kit](https://developer.spotify.com/documentation/design).
+
 ## Contact and affiliate pages
 
 The contact form submits to FormSubmit for david@deepdrinks.com. FormSubmit can require a one-time activation email to that inbox on first use. To verify inbox delivery, submit the published form and complete the provider’s verification if prompted. [Provider documentation](https://formsubmit.co/)

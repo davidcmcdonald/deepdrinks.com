@@ -1,4 +1,5 @@
 import { displayTitle, formatPublished, videoUrl, type Video, type VideoKind } from "@/lib/videos";
+import { SITE } from "@/site.config";
 import TrackLink from "./TrackLink";
 import Glyph from "./Glyph";
 
@@ -6,6 +7,7 @@ export default function VideoCard({ video, kind }: { video: Video; kind: VideoKi
   const label = kind === "episodes" ? "Episode" : "Clip";
   const title = displayTitle(video);
   const detailsId = kind + "-" + video.id + "-details";
+  const podcasts = kind === "episodes" && video.podcastIds;
   return (
     <article className="video-card">
       <TrackLink className="video-link" href={videoUrl(video)} target="_blank" rel="noreferrer" event="video_click"
@@ -29,6 +31,16 @@ export default function VideoCard({ video, kind }: { video: Video; kind: VideoKi
           {video.guest && <p>With {video.guest}</p>}
         </div>
       </TrackLink>
+      {podcasts && <div className="episode-platforms">
+        {podcasts.apple && <TrackLink href={SITE.socials.apple + "?i=" + podcasts.apple} target="_blank" rel="noreferrer"
+          event="podcast_click" params={{ platform: "apple", episode: video.episodeNumber }}>
+          <img src="/images/apple-podcasts-badge.svg" alt={`Listen to ${title} on Apple Podcasts`} width={113} height={36} />
+        </TrackLink>}
+        {podcasts.spotify && <TrackLink href={"https://open.spotify.com/episode/" + podcasts.spotify} target="_blank" rel="noreferrer"
+          event="podcast_click" params={{ platform: "spotify", episode: video.episodeNumber }}>
+          <img className="spotify-logo" src="/images/spotify-logo.svg" alt={`Listen to ${title} on Spotify`} width={103} height={36} />
+        </TrackLink>}
+      </div>}
     </article>
   );
 }

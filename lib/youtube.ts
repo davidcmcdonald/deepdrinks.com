@@ -1,5 +1,6 @@
 import { fetchAtom } from "./playlist";
-import { episodeNumber, type Video, type VideoLibrary } from "./videos";
+import { episodeNumber, withPodcasts, type PodcastCatalog, type Video, type VideoLibrary } from "./videos";
+import { refreshPodcasts } from "./podcast-catalog";
 import { guests, latest, snapshotVideos } from "./video-snapshot";
 import { channels, confirmedLandscape, durationLabel, readOfficial, tabs, type Groups, type Source } from "./youtube-api";
 
@@ -157,7 +158,7 @@ async function readSource(source: Source, known: Map<string, Video>, watching: M
 }
 
 export const REFRESH_MS = 5 * 60 * 1000;
-export type FeedState = { checkedAt: number; groups: Groups; failed: Source[] };
+export type FeedState = { checkedAt: number; groups: Groups; failed: Source[]; podcasts?: PodcastCatalog };
 
 export async function refreshFeeds(previous?: FeedState, apiKey?: string): Promise<FeedState> {
   const names = Object.keys(tabs) as Source[];
@@ -174,7 +175,9 @@ export async function refreshFeeds(previous?: FeedState, apiKey?: string): Promi
     if (result.status === "fulfilled") groups[name] = result.value;
     else failed.push(name);
   });
-  return { groups, failed, checkedAt: Date.now() };
+  const state: FeedState = { groups, failed, checkedAt: Date.now(), podcasts: previous?.podcasts };
+  state.podcasts = await refreshPodcasts(videoLibrary(state).episodes, state.podcasts);
+  return state;
 }
 
 export function videoLibrary(state: FeedState): VideoLibrary {
@@ -183,7 +186,7 @@ export function videoLibrary(state: FeedState): VideoLibrary {
     return state.failed.includes(source) ? videos.map(video => ({ ...video, liveNow: false })) : videos;
   }
   return {
-    episodes: latest([...from("playlist"), ...from("uploads"), ...from("streams")]),
+    episodes: latest([...from("playlist"), ...from("uploads"), ...from("streams")]).map(video => withPodcasts(video, state.podcasts)),
     clips: latest(from("clips")),
     saved: { episodes: (["playlist", "uploads", "streams"] as Source[]).every(name => state.failed.includes(name)), clips: state.failed.includes("clips") },
   };

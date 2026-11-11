@@ -1,5 +1,5 @@
 import snapshot from "../data/youtube.json";
-import type { Video, VideoLibrary } from "./videos";
+import { withPodcasts, type Video, type VideoLibrary } from "./videos";
 
 export const snapshotVideos = snapshot;
 export const guests = new Map(snapshot.episodes.flatMap(video =>
@@ -18,5 +18,5 @@ export function latest(videos: Video[]) {
 }
 
 export function savedLibrary(): VideoLibrary {
-  return { episodes: latest(snapshot.episodes), clips: latest(snapshot.clips), saved: { episodes: true, clips: true } };
+  return { episodes: latest(snapshot.episodes).map(video => withPodcasts(video)), clips: latest(snapshot.clips), saved: { episodes: true, clips: true } };
 }

@@ -1,3 +1,8 @@
+import podcastSnapshot from "../data/podcast-ids.json";
+
+export type PodcastCatalog = { apple: Record<number, string>; spotify: Record<number, string> };
+export const savedPodcasts: PodcastCatalog = podcastSnapshot;
+
 export type Video = {
   id: string;
   title: string;
@@ -11,7 +16,15 @@ export type Video = {
   guest: string | null;
   thumbnail: string;
   liveNow: boolean;
+  podcastIds?: { apple?: string; spotify?: string };
 };
+
+export function withPodcasts(video: Video, catalog = savedPodcasts): Video {
+  if (!video.episodeNumber || video.liveNow) return video;
+  const apple = catalog.apple[video.episodeNumber];
+  const spotify = catalog.spotify[video.episodeNumber];
+  return apple || spotify ? { ...video, podcastIds: { apple, spotify } } : video;
+}
 
 export type VideoKind = "episodes" | "clips";
 
