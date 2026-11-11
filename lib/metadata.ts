@@ -6,6 +6,10 @@ export const pageDetails = {
     title: "Deep Drinks Podcast with David McDonald",
     description: "Watch Deep Drinks interviews and clips with David McDonald. Explore religion, philosophy, science and human rights over a drink with each guest.",
   },
+  "/episodes": {
+    title: "All Episodes",
+    description: "Browse every full-length Deep Drinks interview and panel, newest first. Watch on YouTube or listen to available episodes on Apple Podcasts and Spotify.",
+  },
   "/about/david": {
     title: "About David McDonald",
     description: "Meet David McDonald, former Pentecostal youth pastor and host of Deep Drinks. Read his story and watch his interviews with Jubilee Dawn and Harmonic Atheist.",

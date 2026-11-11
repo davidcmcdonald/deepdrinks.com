@@ -21,8 +21,8 @@ export type Video = {
 
 export function withPodcasts(video: Video, catalog = savedPodcasts): Video {
   if (!video.episodeNumber || video.liveNow) return video;
-  const apple = catalog.apple[video.episodeNumber];
-  const spotify = catalog.spotify[video.episodeNumber];
+  const apple = catalog.apple[video.episodeNumber] ?? savedPodcasts.apple[video.episodeNumber];
+  const spotify = catalog.spotify[video.episodeNumber] ?? savedPodcasts.spotify[video.episodeNumber];
   return apple || spotify ? { ...video, podcastIds: { apple, spotify } } : video;
 }
 
@@ -30,7 +30,20 @@ export type VideoKind = "episodes" | "clips";
 
 export type VideoLibrary = Record<VideoKind, Video[]> & {
   saved: Record<VideoKind, boolean>;
+  archiveAdditions?: Video[];
 };
+
+export function newestFirst(videos: Video[]) {
+  const unique = new Map<string, Video>();
+  for (const video of videos) {
+    const existing = unique.get(video.id);
+    if (!existing || (!existing.liveNow && video.liveNow) || (existing.liveNow === video.liveNow && !existing.published && video.published)) {
+      unique.set(video.id, video);
+    }
+  }
+  const time = (video: Video) => Date.parse(video.published) || video.sortTime || 0;
+  return [...unique.values()].sort((a, b) => Number(b.liveNow) - Number(a.liveNow) || time(b) - time(a));
+}
 
 export function videoUrl(video: Video) {
   return "https://www.youtube.com/watch?v=" + video.id;
@@ -44,7 +57,7 @@ export function episodeNumber(title: string) {
 }
 
 export function displayTitle(video: Video) {
-  let title = video.title.replace(/\s*[\s|–—-]*Deep Drinks(?:\s+Podcast)?\s*[|:–—-]?\s*#\s*\d+\s*$/i, "");
+  let title = video.title.replace(/\s*[\s|–—-]*Deep Drinks?(?:\s+Podcast)?\s*[|:–—-]?\s*#\s*\d+(?:\s+w(?:ith|\/)?\s+David McDonald)?\s*$/i, "");
   title = title.replace(/\s*\|\s*Ep(?:isode)?\.?\s*#?\d+\s*$/i, "");
   if (video.guest) {
     const parenthetical = title.match(/\s*\(([^)]+)\)\s*$/);

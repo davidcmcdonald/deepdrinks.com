@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { SITE } from "@/site.config";
-import { videoUrl, type VideoLibrary } from "@/lib/videos";
+import { newestFirst, videoUrl, type Video, type VideoLibrary } from "@/lib/videos";
 import VideoCard from "./VideoCard";
 import Clips from "./Clips";
 import Glyph from "./Glyph";
@@ -71,7 +71,7 @@ export function HomeVideos() {
         <div className="section-heading">
           <div><h2 id="episodes-heading">Recent episodes<span className="heading-period">.</span></h2>
             <p>Full-length interviews with David and his guests.</p></div>
-          <a href={SITE.playlist} className="text-action" target="_blank" rel="noreferrer">All episodes <Glyph name="out" /></a>
+          <a href="/episodes" className="text-action">All episodes <Glyph name="right" /></a>
         </div>
         {saved.episodes && <p className="feed-note">Showing the last saved YouTube listings.</p>}
         <div className="video-grid">{episodes.map(video => <VideoCard key={video.id} video={video} kind="episodes" />)}</div>
@@ -80,4 +80,10 @@ export function HomeVideos() {
       <Clips clips={clips} saved={saved.clips} />
     </>
   );
+}
+
+export function ArchiveVideos({ catalog }: { catalog: Video[] }) {
+  const { episodes, archiveAdditions = [] } = useContext(Feed)!;
+  const videos = newestFirst([...episodes, ...archiveAdditions, ...catalog]);
+  return <div className="video-grid">{videos.map(video => <VideoCard key={video.id} video={video} kind="episodes" />)}</div>;
 }

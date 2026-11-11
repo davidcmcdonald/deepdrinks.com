@@ -28,7 +28,9 @@ The keyless reader uses YouTube’s public tabs and playlist pages. If a public 
 
 ## Episode listening links
 
-The Recent episodes cards link each numbered interview to its audio release. The feed looks up missing episode IDs in the show’s Spotify listing and Apple Podcasts catalogue, matches the published episode number and saves each match. A platform appears once its audio release is available. The bundled IDs in `data/podcast-ids.json` cover the saved YouTube episodes. The artwork comes from [Apple Podcasts marketing tools](https://podcasters.apple.com/promote/) and [Spotify’s logo kit](https://developer.spotify.com/documentation/design).
+The homepage’s **All episodes** link opens [the archive](https://www.deepdrinks.com/episodes). Its newest-first grid combines the full playlist snapshot in `data/youtube.json` with new episodes retained by the live feed. The November 2026 snapshot includes all 125 numbered episodes and the unnumbered panel. Apple Podcasts and Spotify both list 124 of these interviews, matched by episode number and shared audio GUID in `data/podcast-ids.json`.
+
+Each card shows a monochrome icon for each available audio release. The feed looks up missing episode IDs in the show’s Spotify listing and Apple Podcasts catalogue and saves each match. The icons come from [Apple Podcasts](https://podcasts.apple.com/assets/favicon/favicon.svg) and [Spotify’s logo kit](https://developer.spotify.com/documentation/design).
 
 ## Contact and affiliate pages
 
