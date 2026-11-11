@@ -1,4 +1,4 @@
-import { displayTitle, formatPublished, videoUrl, type Video, type VideoKind } from "@/lib/videos";
+import { displayTitle, formatPublished, videoUrl, withPodcasts, type Video, type VideoKind } from "@/lib/videos";
 import { SITE } from "@/site.config";
 import TrackLink from "./TrackLink";
 import Glyph from "./Glyph";
@@ -7,7 +7,8 @@ export default function VideoCard({ video, kind }: { video: Video; kind: VideoKi
   const label = kind === "episodes" ? "Episode" : "Clip";
   const title = displayTitle(video);
   const detailsId = kind + "-" + video.id + "-details";
-  const podcasts = kind === "episodes" && video.podcastIds;
+  // A returning visitor may still have a feed response cached before listening links were added.
+  const podcasts = kind === "episodes" && (video.podcastIds ?? withPodcasts(video).podcastIds);
   return (
     <article className="video-card">
       <TrackLink className="video-link" href={videoUrl(video)} target="_blank" rel="noreferrer" event="video_click"
